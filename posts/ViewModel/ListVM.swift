@@ -11,34 +11,37 @@ import Moya
 
 class ListVM: ObservableObject {
     
+    @Published var path: [Int] = []
     @Published var posts: [Post] = []
-    @Published var errorMsg: String?
+    
+    @Published var topViewType: TopViewType?
+    var errorMsg: String = ""
     
     private let getPostsService: GetPostsService
     private var cancellables = Set<AnyCancellable>()
     
     init(getPostsService: GetPostsService) { self.getPostsService = getPostsService }
     
-    
     func loadPosts() {
+        topViewType = .SPINNER
+        
         getPostsService.execute()
-            .sink { completion in
+            .sink { [weak self] completion in
                 switch completion {
                 case .finished:
-                    print("done")
                     break
                 case .failure(let error):
-                    guard let moyaError = error as? MoyaError else {
-                        print("error = \(error)")
-                        return
-                    }
-                    print("moyaError = \(moyaError)")
+                    self?.errorMsg = error.getMsg()
+                    self?.topViewType = .ALERT
                     break
                 }
-            } receiveValue: { posts in
-                print("posts = \(posts)")
+            } receiveValue: { [weak self] posts in
+                self?.posts = posts
+                self?.topViewType = nil
             }
             .store(in: &cancellables)
-
     }
+    
+    
+    
 }
