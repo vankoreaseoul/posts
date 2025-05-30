@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Moya
 import Combine
 
 protocol GetPostsService {

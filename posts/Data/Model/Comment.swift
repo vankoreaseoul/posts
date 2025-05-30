@@ -1,5 +1,5 @@
 //
-//  Post.swift
+//  Comment.swift
 //  posts
 //
 //  Created by Heawon Seo on 5/29/25.
@@ -7,9 +7,10 @@
 
 import Foundation
 
-struct Post: Codable, Hashable {
+struct Comment: Codable {
     let id: Int
-    let title: String
+    let name: String
+    let email: String
     let body: String
-    let userId: Int
+    let postId: Int
 }

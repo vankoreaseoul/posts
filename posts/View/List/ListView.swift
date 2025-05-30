@@ -9,11 +9,12 @@ import SwiftUI
 
 struct ListView: View {
     
-    @StateObject private var vm: ListVM
+    @ObservedObject private var vm: ListVM
     
-    init() {
-        let vm = ListVM(getPostsService: GetPostsServiceImpl(repository: PostRepositoryImpl()))
-        _vm = StateObject(wrappedValue: vm)
+    init(vm: ListVM) {
+        _vm = ObservedObject(wrappedValue: vm)
+        
+        print("ListView init")
     }
     
     var body: some View {
@@ -24,27 +25,30 @@ struct ListView: View {
                     ListRowView(post: post)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
-                        .onTapGesture { vm.path.append(post.id) }
+                        .onTapGesture { vm.didTapPostRow(post: post) }
                 }
             }
             .navigationTitle("Posts")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: Int.self) { id in
-                Text("\(id)")
+            .navigationDestination(for: Post.self) { post in
+                let detailVM = vm.getDetailVM(post: post)
+                DetailView(vm: detailVM, errorMsg: $vm.errorMsg)
             }
         }
         .padding(.vertical, 4)
         .overlay {
-            if vm.topViewType == .SPINNER {
-                SpinnerView()
-            } else if vm.topViewType == .ALERT {
-                AlertView(msg: vm.errorMsg, viewType: $vm.topViewType)
+            if let hasErrorMsg = vm.errorMsg {
+                if hasErrorMsg.isEmpty {
+                    SpinnerView()
+                } else {
+                    AlertView(msg: $vm.errorMsg)
+                }
             }
         }
         
-        
         .onAppear {
             vm.loadPosts()
+            print("ListView Appeared")
         }
         
         
@@ -52,5 +56,5 @@ struct ListView: View {
 }
 
 #Preview {
-    ListView()
+    ListView(vm: ListVM(getPostsService: GetPostsServiceImpl(repository: PostRepositoryImpl())))
 }

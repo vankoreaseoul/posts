@@ -9,10 +9,15 @@ import SwiftUI
 
 struct AlertView: View {
     
-    let msg: String
-    @Binding var viewType: TopViewType?
+    @Binding var msg: String?
+    @State private var errorMsg: String = ""
     
-    private func didTapOkBtn() { viewType = nil }
+    init(msg: Binding<String?>) {
+        self._msg = msg
+        _errorMsg = State(initialValue: msg.wrappedValue ?? "")
+    }
+    
+    private func didTapOkBtn() { msg = nil }
     
     var body: some View {
         
@@ -28,7 +33,7 @@ struct AlertView: View {
                     .padding(8)
                     .background(.blue.opacity(0.5))
                 
-                Text(msg)
+                Text(errorMsg)
                     .font(.system(size: 14))
                     .multilineTextAlignment(.center)
                     .padding([.horizontal, .top], 16)
@@ -60,5 +65,5 @@ struct AlertView: View {
 }
 
 #Preview {
-    AlertView(msg: "", viewType: .constant(.ALERT))
+    AlertView(msg: .constant("test"))
 }

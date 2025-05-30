@@ -11,19 +11,26 @@ import Moya
 
 class ListVM: ObservableObject {
     
-    @Published var path: [Int] = []
+    @Published var path: [Post] = []
     @Published var posts: [Post] = []
+    @Published var errorMsg: String?
     
-    @Published var topViewType: TopViewType?
-    var errorMsg: String = ""
+    private var detailVM: DetailVM?
     
     private let getPostsService: GetPostsService
     private var cancellables = Set<AnyCancellable>()
     
-    init(getPostsService: GetPostsService) { self.getPostsService = getPostsService }
+    init(getPostsService: GetPostsService) {
+        self.getPostsService = getPostsService
+        print("ListVM init")
+    }
+    
+    deinit {
+        print("ListVM deinit")
+    }
     
     func loadPosts() {
-        topViewType = .SPINNER
+        errorMsg = ""
         
         getPostsService.execute()
             .sink { [weak self] completion in
@@ -32,16 +39,29 @@ class ListVM: ObservableObject {
                     break
                 case .failure(let error):
                     self?.errorMsg = error.getMsg()
-                    self?.topViewType = .ALERT
                     break
                 }
             } receiveValue: { [weak self] posts in
                 self?.posts = posts
-                self?.topViewType = nil
+                self?.errorMsg = nil
             }
             .store(in: &cancellables)
     }
     
+    func didTapPostRow(post: Post) {
+        path.append(post)
+    }
+    
+    func getDetailVM(post: Post) -> DetailVM {
+        if let hasDetailVM = detailVM, hasDetailVM.post == post {
+            return hasDetailVM
+            
+        } else {
+            let detailVM = DetailVM(getFirstThreeCommentsService: GetFirstThreeCommentsServiceImpl(repository: PostRepositoryImpl()), post: post)
+            self.detailVM = detailVM
+            return detailVM
+        }
+    }
     
     
 }

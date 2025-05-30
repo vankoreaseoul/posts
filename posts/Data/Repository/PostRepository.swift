@@ -12,6 +12,7 @@ import Combine
 
 protocol PostRepository {
     func fetchPosts() -> AnyPublisher<[Post], Error>
+    func fetchComments(postId: Int) -> AnyPublisher<[Comment], Error>
 }
 
 class PostRepositoryImpl: PostRepository {
@@ -25,5 +26,11 @@ class PostRepositoryImpl: PostRepository {
             .eraseToAnyPublisher()
     }
     
+    func fetchComments(postId: Int) -> AnyPublisher<[Comment], Error> {
+        return provider.requestPublisher(.getComments(postId: postId))
+            .tryMap { try $0.map([Comment].self) }
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
     
 }

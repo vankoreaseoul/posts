@@ -11,6 +11,12 @@ struct ListRowView: View {
     
     let post: Post
     
+    init(post: Post) {
+        self.post = post
+        
+        print("ListRowView \(post.id) init")
+    }
+    
     var body: some View {
         
         VStack(alignment: .leading, spacing: 4) {
@@ -36,6 +42,10 @@ struct ListRowView: View {
             }
         }
         .font(.system(size: 14))
+        
+        .onAppear {
+            print("ListRowView \(post.id) Appeared")
+        }
         
         
     }
