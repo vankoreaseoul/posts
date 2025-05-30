@@ -7,4 +7,5 @@
 
 import Foundation
 
-let USED_URL = "https://jsonplaceholder.typicode.com"
+let POST_URL = "https://jsonplaceholder.typicode.com"
+let IMAGE_URL = "https://picsum.photos/id"

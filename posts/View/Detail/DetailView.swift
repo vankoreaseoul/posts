@@ -24,6 +24,8 @@ struct DetailView: View {
         ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 16) {
                 
+                ImageView(postId: vm.post.id)
+                
                 // Post
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 4) {

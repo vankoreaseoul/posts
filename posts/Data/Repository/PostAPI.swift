@@ -15,7 +15,7 @@ enum PostAPI {
 
 extension PostAPI: TargetType {
     var baseURL: URL {
-        return URL(string: USED_URL)!
+        return URL(string: POST_URL)!
     }
        
     var path: String {

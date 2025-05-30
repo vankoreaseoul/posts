@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		DC8988692DE74CB400B0A034 /* CombineMoya in Frameworks */ = {isa = PBXBuildFile; productRef = DC8988682DE74CB400B0A034 /* CombineMoya */; };
 		DC89886B2DE74CB400B0A034 /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = DC89886A2DE74CB400B0A034 /* Moya */; };
+		DC8988BB2DE9FF2C00B0A034 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = DC8988BA2DE9FF2C00B0A034 /* Kingfisher */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DC8988BB2DE9FF2C00B0A034 /* Kingfisher in Frameworks */,
 				DC89886B2DE74CB400B0A034 /* Moya in Frameworks */,
 				DC8988692DE74CB400B0A034 /* CombineMoya in Frameworks */,
 			);
@@ -74,6 +76,7 @@
 			packageProductDependencies = (
 				DC8988682DE74CB400B0A034 /* CombineMoya */,
 				DC89886A2DE74CB400B0A034 /* Moya */,
+				DC8988BA2DE9FF2C00B0A034 /* Kingfisher */,
 			);
 			productName = posts;
 			productReference = DC8988592DE74ABD00B0A034 /* posts.app */;
@@ -105,6 +108,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				DC8988672DE74CB400B0A034 /* XCRemoteSwiftPackageReference "Moya" */,
+				DC8988B92DE9FF2C00B0A034 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DC89885A2DE74ABD00B0A034 /* Products */;
@@ -356,6 +360,14 @@
 				minimumVersion = 15.0.3;
 			};
 		};
+		DC8988B92DE9FF2C00B0A034 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.3.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -368,6 +380,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DC8988672DE74CB400B0A034 /* XCRemoteSwiftPackageReference "Moya" */;
 			productName = Moya;
+		};
+		DC8988BA2DE9FF2C00B0A034 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DC8988B92DE9FF2C00B0A034 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

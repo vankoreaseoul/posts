@@ -7,6 +7,7 @@
 
 import Foundation
 import Moya
+import Kingfisher
 
 extension Error {
     func getMsg() -> String {
@@ -34,3 +35,5 @@ extension Error {
         }
     }
 }
+
+
