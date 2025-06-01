@@ -11,6 +11,7 @@ import Foundation
 enum PostAPI {
     case getPosts
     case getComments(postId: Int)
+    case createPost(post: Post)
 }
 
 extension PostAPI: TargetType {
@@ -20,7 +21,7 @@ extension PostAPI: TargetType {
        
     var path: String {
         switch self {
-        case .getPosts:
+        case .getPosts, .createPost:
             return "/posts"
         case .getComments(let postId):
             return "/posts/\(postId)/comments"
@@ -31,6 +32,8 @@ extension PostAPI: TargetType {
         switch self {
         case .getPosts, .getComments:
             return .get
+        case .createPost:
+            return .post
         }
     }
     
@@ -38,6 +41,8 @@ extension PostAPI: TargetType {
         switch self {
         case .getPosts, .getComments:
             return .requestPlain
+        case .createPost(let post):
+            return .requestJSONEncodable(post.switchToCreatePostRequestDTO())
         }
     }
     

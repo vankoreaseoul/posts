@@ -23,7 +23,8 @@ struct SpinnerView: View {
                         .padding()
                     
                     Text("Loading...")
-                        .foregroundColor(.white)
+                        .font(.system(size: 16))
+                        .foregroundStyle(.white)
                 }
             }
         

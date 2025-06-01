@@ -20,19 +20,36 @@ struct ListView: View {
     var body: some View {
         
         NavigationStack(path: $vm.path) {
-            List {
-                ForEach(vm.posts, id: \.id) { post in
-                    ListRowView(post: post)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                        .onTapGesture { vm.didTapPostRow(post: post) }
+            VStack(spacing: 0) {
+                List {
+                    ForEach(vm.posts, id: \.hashValue) { post in
+                        ListRowView(post: post)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                            .onTapGesture { vm.didTapPostRow(post: post) }
+                    }
                 }
             }
             .navigationTitle("Posts")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: Post.self) { post in
-                let detailVM = vm.getDetailVM(post: post)
-                DetailView(vm: detailVM, errorMsg: $vm.errorMsg)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    CustomButton(title: "Create", horizontalPadding: 16) {
+                        vm.didTapCreateBtn()
+                    }
+                }
+            }
+            .navigationDestination(for: ViewType.self) { viewType in
+                if viewType == .DETAIL {
+                    let detailVM = vm.getDetailVM()
+                    DetailView(vm: detailVM)
+                        .environmentObject(vm)
+                    
+                } else {
+                    let createVM = vm.getCreateVM()
+                    CreateView(vm: createVM)
+                        .environmentObject(vm)
+                }
             }
         }
         .padding(.vertical, 4)

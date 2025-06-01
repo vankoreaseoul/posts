@@ -28,32 +28,22 @@ struct AlertView: View {
             
             VStack(spacing: 0) {
                 Text("Notice")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: TITLE_FONT_SIZE, weight: .bold))
                     .frame(maxWidth: .infinity)
                     .padding(8)
                     .background(.blue.opacity(0.5))
                 
                 Text(errorMsg)
-                    .font(.system(size: 14))
+                    .font(.system(size: TEXT_FONT_SIZE))
                     .multilineTextAlignment(.center)
                     .padding([.horizontal, .top], 16)
                     .padding(.bottom, 28)
                     .frame(maxWidth: .infinity, alignment: .center)
                 
-                Button {
+                CustomButton(title: "OK") {
                     didTapOkBtn()
-                } label: {
-                    Text("Ok")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 20)
-                        .background {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(.blue.opacity(0.5))
-                        }
                 }
-                .padding(.bottom, 16)
+                .padding([.bottom, .horizontal], 16)
             }
             .background(Color.white)
             .clipShape(RoundedRectangle(cornerRadius: 12))

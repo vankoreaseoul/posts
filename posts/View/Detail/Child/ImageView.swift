@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ImageView: View {
     
-    @StateObject var vm = ImageVM(getImageService: GetImageServiceImpl(repository: ImageRepositoryImpl()))
+    @StateObject var vm = ImageVM(getImageService: GetImageServiceImpl(repository: DIContainer.shared.getImageRepository()))
     let postId: Int
     
     init(postId: Int) {

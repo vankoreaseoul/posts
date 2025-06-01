@@ -7,7 +7,8 @@
 
 import Foundation
 import Moya
-import Kingfisher
+import UIKit
+import SwiftUI
 
 extension Error {
     func getMsg() -> String {
@@ -33,6 +34,18 @@ extension Error {
         case .parameterEncoding(let error):
             return "Failed to encode parameters. (\(error.localizedDescription))"
         }
+    }
+}
+
+extension View {
+    func applyPadding(_ padding: CGFloat = 16) -> some View {
+        self.modifier(PaddingModifier(padding: padding))
+    }
+}
+
+extension UIApplication {
+    func hideKeyboard() {
+        sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 

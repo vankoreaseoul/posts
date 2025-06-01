@@ -9,3 +9,5 @@ import Foundation
 
 let POST_URL = "https://jsonplaceholder.typicode.com"
 let IMAGE_URL = "https://picsum.photos/id"
+let TEXT_FONT_SIZE: CGFloat = 14
+let TITLE_FONT_SIZE: CGFloat = 16

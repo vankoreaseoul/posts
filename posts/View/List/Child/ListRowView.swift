@@ -20,28 +20,10 @@ struct ListRowView: View {
     var body: some View {
         
         VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 4) {
-                Text("id:")
-                    .bold()
-                
-                Text(post.id.description)
-            }
-            
-            HStack(alignment: .top, spacing: 4) {
-                Text("title:")
-                    .bold()
-                
-                Text(post.title)
-            }
-            
-            HStack(spacing: 4) {
-                Text("userId:")
-                    .bold()
-                
-                Text(post.userId.description)
-            }
+            CustomTextView(title: "id", text: post.id.description)
+            CustomTextView(title: "title", text: post.title)
+            CustomTextView(title: "userId", text: post.userId.description)
         }
-        .font(.system(size: 14))
         
         .onAppear {
             print("ListRowView \(post.id) Appeared")

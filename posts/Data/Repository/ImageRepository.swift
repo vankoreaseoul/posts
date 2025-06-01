@@ -23,6 +23,20 @@ class ImageRepositoryImpl: ImageRepository {
     init() {
         mgr = KingfisherManager.shared
         cache = mgr.cache
+        
+        configureDiskCache()
+        configureMemoryCache()
+    }
+    
+    private func configureDiskCache() {
+        cache.diskStorage.config.sizeLimit = 200 * 1024 * 1024 // 200 MB
+        cache.diskStorage.config.expiration = .days(3) // 3 days after -> expired
+    }
+    
+    private func configureMemoryCache() {
+        cache.memoryStorage.config.totalCostLimit = 50 * 1024 * 1024 // 50 MB
+        cache.memoryStorage.config.expiration = .seconds(3600) // 1 hour after -> expired
+        cache.memoryStorage.config.countLimit = 100 // Max file count: 100
     }
     
     func fetchFromRemote(url: URL) -> AnyPublisher<UIImage, KingfisherError> {

@@ -9,12 +9,11 @@ import SwiftUI
 
 struct DetailView: View {
     
+    @EnvironmentObject private var listVM: ListVM
     @ObservedObject private var vm: DetailVM
-    @Binding var errorMsg: String?
     
-    init(vm: DetailVM, errorMsg: Binding<String?>) {
+    init(vm: DetailVM) {
         _vm = ObservedObject(wrappedValue: vm)
-        _errorMsg = errorMsg
         
         print("DetailView init")
     }
@@ -28,44 +27,23 @@ struct DetailView: View {
                 
                 // Post
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 4) {
-                        Text("id:")
-                            .bold()
-                        
-                        Text(vm.post.id.description)
-                    }
-                    
-                    HStack(alignment: .top, spacing: 4) {
-                        Text("title:")
-                            .bold()
-                        
-                        Text(vm.post.title)
-                    }
-                    
-                    HStack(alignment: .top, spacing: 4) {
-                        Text("body:")
-                            .bold()
-                        
-                        Text(vm.post.body)
-                    }
-                    
-                    HStack(spacing: 4) {
-                        Text("userId:")
-                            .bold()
-                        
-                        Text(vm.post.userId.description)
-                    }
+                    CustomTextView(title: "id", text: vm.post.id.description)
+                    CustomTextView(title: "title", text: vm.post.title)
+                    CustomTextView(title: "body", text: vm.post.body)
+                    CustomTextView(title: "userId", text: vm.post.userId.description)
                 }
                 
-                Divider()
-                    .frame(height: 2)
-                    .background(Color.gray)
-                    .overlay {
-                        Text("Comments")
-                            .font(.system(size: 14, weight: .bold))
-                            .padding(.horizontal, 4)
-                            .background(.white)
-                    }
+                if !vm.comments.isEmpty {
+                    Divider()
+                        .frame(height: 2)
+                        .background(Color.gray)
+                        .overlay {
+                            Text("Comments")
+                                .font(.system(size: TEXT_FONT_SIZE, weight: .bold))
+                                .padding(.horizontal, 4)
+                                .background(.white)
+                        }
+                }
                     
                 // Comments
                 VStack(alignment: .leading, spacing: 16) {
@@ -76,16 +54,20 @@ struct DetailView: View {
                 }
                 
             }
-            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .applyPadding()
         }
-        .font(.system(size: 14))
         
         .onAppear {
             vm.loadComments()
             print("DetailView Appeared")
         }
+        .onDisappear {
+            listVM.detailVM = nil
+            print("DetailView Disappeared")
+        }
         .onChange(of: vm.errorMsg) { oldValue, newValue in
-            errorMsg = newValue
+            listVM.errorMsg = newValue
         }
         
         
@@ -93,5 +75,5 @@ struct DetailView: View {
 }
 
 #Preview {
-    DetailView(vm: DetailVM(getFirstThreeCommentsService: GetFirstThreeCommentsServiceImpl(repository: PostRepositoryImpl()), post: Post(id: 1, title: "test", body: "test", userId: 1)), errorMsg: .constant("test"))
+    DetailView(vm: DetailVM(getFirstThreeCommentsService: GetFirstThreeCommentsServiceImpl(repository: PostRepositoryImpl()), post: Post(id: 1, title: "test", body: "test", userId: 1)))
 }

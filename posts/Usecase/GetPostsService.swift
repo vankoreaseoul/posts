@@ -18,7 +18,5 @@ class GetPostsServiceImpl: GetPostsService {
     
     init(repository: PostRepository) { self.repository = repository }
     
-    func execute() -> AnyPublisher<[Post], Error> {
-        return repository.fetchPosts()
-    }
+    func execute() -> AnyPublisher<[Post], Error> { return repository.fetchPosts() }
 }
