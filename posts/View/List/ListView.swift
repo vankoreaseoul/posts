@@ -19,8 +19,8 @@ struct ListView: View {
     
     var body: some View {
         
-        NavigationStack(path: $vm.path) {
-            VStack(spacing: 0) {
+//        NavigationStack(path: $vm.path) {
+//            VStack(spacing: 0) {
                 List {
                     ForEach(vm.posts, id: \.hashValue) { post in
                         ListRowView(post: post)
@@ -29,39 +29,39 @@ struct ListView: View {
                             .onTapGesture { vm.didTapPostRow(post: post) }
                     }
                 }
-            }
-            .navigationTitle("Posts")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    CustomButton(title: "Create", horizontalPadding: 16) {
-                        vm.didTapCreateBtn()
-                    }
-                }
-            }
-            .navigationDestination(for: ViewType.self) { viewType in
-                if viewType == .DETAIL {
-                    let detailVM = vm.getDetailVM()
-                    DetailView(vm: detailVM)
-                        .environmentObject(vm)
-                    
-                } else {
-                    let createVM = vm.getCreateVM()
-                    CreateView(vm: createVM)
-                        .environmentObject(vm)
-                }
-            }
-        }
-        .padding(.vertical, 4)
-        .overlay {
-            if let hasErrorMsg = vm.errorMsg {
-                if hasErrorMsg.isEmpty {
-                    SpinnerView()
-                } else {
-                    AlertView(msg: $vm.errorMsg)
-                }
-            }
-        }
+//            }
+//            .navigationTitle("Posts")
+//            .navigationBarTitleDisplayMode(.inline)
+//            .toolbar {
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                    CustomButton(title: "Create", horizontalPadding: 16) {
+//                        vm.didTapCreateBtn()
+//                    }
+//                }
+//            }
+//            .navigationDestination(for: ViewType.self) { viewType in
+//                if viewType == .DETAIL {
+//                    let detailVM = vm.getDetailVM()
+//                    DetailView(vm: detailVM)
+//                        .environmentObject(vm)
+//                    
+//                } else {
+//                    let createVM = vm.getCreateVM()
+//                    CreateView(vm: createVM)
+//                        .environmentObject(vm)
+//                }
+//            }
+//        }
+//        .padding(.vertical, 4)
+//        .overlay {
+//            if let hasErrorMsg = vm.errorMsg {
+//                if hasErrorMsg.isEmpty {
+//                    SpinnerView()
+//                } else {
+//                    AlertView(msg: $vm.errorMsg)
+//                }
+//            }
+//        }
         
         .onAppear {
             vm.loadPosts()
