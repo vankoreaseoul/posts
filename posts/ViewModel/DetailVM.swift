@@ -6,45 +6,61 @@
 //
 
 import Foundation
-import Combine
 
-class DetailVM: ObservableObject {
+@Observable
+final class DetailVM {
     
-    @Published var comments: [Comment] = []
-    @Published var errorMsg: String?
+    let postId: Int
     
-    let post: Post
-    
-    private let getFirstThreeCommentsService: GetFirstThreeCommentsService
-    private var cancellables = Set<AnyCancellable>()
-    
-    init(getFirstThreeCommentsService: GetFirstThreeCommentsService, post: Post) {
-        self.getFirstThreeCommentsService = getFirstThreeCommentsService
-        self.post = post
-        
-        print("DetailVM \(post.id) init")
+    var post: Post?
+    var isLoading: Bool = false
+    var errorMsg: String?
+    var comments: [Comment] = []
+    var totalComments: [Comment] = []
+
+    private let getPostDetailService: GetPostDetailService
+
+    init(postId: Int, getPostDetailService: GetPostDetailService) {
+        print("DetailVM \(postId) init")
+        self.postId = postId
+        self.getPostDetailService = getPostDetailService
     }
     
     deinit {
-        print("DetailVM \(post.id) deinit")
+        print("DetailVM \(postId) deinit")
     }
     
-    func loadComments() {
-        errorMsg = ""
+    func fetchPostDetail() async {
+        print("fetchPost call")
         
-        getFirstThreeCommentsService.execute(postId: post.id)
-            .sink { [weak self] completion in
-                switch completion {
-                case .finished:
-                    break
-                case .failure(let error):
-                    self?.errorMsg = error.getMsg()
-                    break
-                }
-            } receiveValue: { [weak self] comments in
-                self?.comments = comments
-                self?.errorMsg = nil
+        isLoading = true
+        
+        do {
+            // TODO: 순차 진행 -> 병렬 X
+            let fetchedPost = try await getPostDetailService.getPost(id: postId)
+            let fetchedComments = try await getPostDetailService.getComments(postId: postId)
+            
+            await MainActor.run {
+                post = fetchedPost
+                totalComments = fetchedComments
+                comments = Array(totalComments.prefix(3))
+                isLoading = false
             }
-            .store(in: &cancellables)
+            
+        } catch {
+            await MainActor.run {
+                errorMsg = error.localizedDescription
+                isLoading = false
+            }
+        }
     }
+    
+    func didTapCommentsMoreBtn() {
+        if comments.count == 3 {
+            comments = totalComments
+        } else {
+            comments = Array(totalComments.prefix(3))
+        }
+    }
+    
 }

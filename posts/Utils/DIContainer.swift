@@ -19,7 +19,7 @@ class DIContainer {
     
     private func configure() {
         container.register(PostRepository.self) { _ in
-            return PostRepositoryImpl()
+            return DefaultPostRepository()
         }
         
         container.register(ImageRepository.self) { _ in

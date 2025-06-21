@@ -5,18 +5,11 @@
 //  Created by Heawon Seo on 5/28/25.
 //
 
-import Foundation
-import Combine
-
-protocol GetPostsService {
-    func execute() -> AnyPublisher<[Post], Error>
-}
-
-class GetPostsServiceImpl: GetPostsService {
+final class GetPostsService {
     
     private let repository: PostRepository
     
     init(repository: PostRepository) { self.repository = repository }
     
-    func execute() -> AnyPublisher<[Post], Error> { return repository.fetchPosts() }
+    func execute() async throws -> [Post] { return try await repository.fetchPosts() }
 }

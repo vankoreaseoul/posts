@@ -7,32 +7,28 @@
 
 import Foundation
 import Moya
+
 import CombineMoya
 import Combine
 
 protocol PostRepository {
-    func fetchPosts() -> AnyPublisher<[Post], Error>
-    func fetchComments(postId: Int) -> AnyPublisher<[Comment], Error>
+    func fetchPosts() async throws -> [Post]
+    func fetchPostDetail(id: Int) async throws -> Post
+    func fetchComments(postId: Int) async throws -> [Comment]
+    
     func createPost(post: Post) -> AnyPublisher<Post, Error>
 }
 
-class PostRepositoryImpl: PostRepository {
-   
+final class DefaultPostRepository: PostRepository {
     private let provider = MoyaProvider<PostAPI>()
     
-    func fetchPosts() -> AnyPublisher<[Post], Error> {
-        return provider.requestPublisher(.getPosts)
-            .tryMap { try $0.map([Post].self) }
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
-    }
+    func fetchPosts() async throws -> [Post] { return try await provider.asyncRequest([Post].self, .getPosts) }
     
-    func fetchComments(postId: Int) -> AnyPublisher<[Comment], Error> {
-        return provider.requestPublisher(.getComments(postId: postId))
-            .tryMap { try $0.map([Comment].self) }
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
-    }
+    func fetchPostDetail(id: Int) async throws -> Post { return try await provider.asyncRequest(Post.self, .getPost(id: id)) }
+    
+    func fetchComments(postId: Int) async throws -> [Comment] { return try await provider.asyncRequest([Comment].self, .getComments(postId: postId)) }
+    
+    
     
     func createPost(post: Post) -> AnyPublisher<Post, Error> {
         return provider.requestPublisher(.createPost(post: post))

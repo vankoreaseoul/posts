@@ -8,64 +8,49 @@
 import SwiftUI
 
 struct ListView: View {
-    
-    @ObservedObject private var vm: ListVM
-    
-    init(vm: ListVM) {
-        _vm = ObservedObject(wrappedValue: vm)
         
-        print("ListView init")
-    }
+    @State private var vm = ListVM(getPostsService: GetPostsService(repository: DefaultPostRepository()))
+     
+    init() { print("ListView init") }
     
     var body: some View {
         
-//        NavigationStack(path: $vm.path) {
-//            VStack(spacing: 0) {
-                List {
-                    ForEach(vm.posts, id: \.hashValue) { post in
-                        ListRowView(post: post)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
-                            .onTapGesture { vm.didTapPostRow(post: post) }
+        print("ListView render")
+        
+        return NavigationStack {
+            List(vm.posts, id: \.id) { post in
+                NavigationLink {
+                    DetailView(vm: DetailVM(postId: post.id, getPostDetailService: GetPostDetailService(repository: DefaultPostRepository())))
+                        .environment(vm)
+                    
+                } label: {
+                    ListRowView(post: post)
+                }
+            }
+            .navigationTitle("Posts")
+            .toolbar {
+                ToolbarItem {
+                    CustomButton(title: "Create", horizontalPadding: 16) {
+                        // vm.didTapCreateBtn()
                     }
                 }
-//            }
-//            .navigationTitle("Posts")
-//            .navigationBarTitleDisplayMode(.inline)
-//            .toolbar {
-//                ToolbarItem(placement: .navigationBarTrailing) {
-//                    CustomButton(title: "Create", horizontalPadding: 16) {
-//                        vm.didTapCreateBtn()
-//                    }
-//                }
-//            }
-//            .navigationDestination(for: ViewType.self) { viewType in
-//                if viewType == .DETAIL {
-//                    let detailVM = vm.getDetailVM()
-//                    DetailView(vm: detailVM)
-//                        .environmentObject(vm)
-//                    
-//                } else {
-//                    let createVM = vm.getCreateVM()
-//                    CreateView(vm: createVM)
-//                        .environmentObject(vm)
-//                }
-//            }
-//        }
-//        .padding(.vertical, 4)
-//        .overlay {
-//            if let hasErrorMsg = vm.errorMsg {
-//                if hasErrorMsg.isEmpty {
-//                    SpinnerView()
-//                } else {
-//                    AlertView(msg: $vm.errorMsg)
-//                }
-//            }
-//        }
-        
+            }
+        }
+        .padding(.bottom, 1)
+        .overlay { if vm.isLoading { SpinnerView() } }
+        .alert("Notice", isPresented: .constant(vm.errorMsg != nil)) {
+            Button("OK") { vm.didTapAlertOkBtn() }
+        } message: {
+            Text(vm.errorMsg ?? "")
+        }
+        .task {
+            await vm.fetchPosts()
+        }
         .onAppear {
-            vm.loadPosts()
             print("ListView Appeared")
+        }
+        .onDisappear {
+            print("ListView Disappeared")
         }
         
         
@@ -73,5 +58,5 @@ struct ListView: View {
 }
 
 #Preview {
-    ListView(vm: ListVM(getPostsService: GetPostsServiceImpl(repository: PostRepositoryImpl())))
+    ListView()
 }

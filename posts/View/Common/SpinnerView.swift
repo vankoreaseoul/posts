@@ -9,9 +9,15 @@ import SwiftUI
 
 struct SpinnerView: View {
     
+    init() {
+        print("SpinnerView init")
+    }
+    
     var body: some View {
         
-        Rectangle()
+        print("SpinnerView render")
+        
+        return Rectangle()
             .fill(.black.opacity(0.7))
             .ignoresSafeArea()
             .overlay {

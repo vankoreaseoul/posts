@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CreateView: View {
     
-    @EnvironmentObject private var listVM: ListVM
+//    @EnvironmentObject private var listVM: ListVM
     @ObservedObject private var vm: CreateVM
     
     init(vm: CreateVM) {
@@ -66,22 +66,22 @@ struct CreateView: View {
         }
         .onDisappear {
             print("CreateView Disappeared")
-            listVM.createVM = nil
+//            listVM.createVM = nil
         }
-        .onChange(of: vm.newPost) { oldValue, newValue in
-            guard oldValue == nil, let hasNewValue = newValue else { return }
+//        .onChange(of: vm.newPost) { oldValue, newValue in
+//            guard oldValue == nil, let hasNewValue = newValue else { return }
             
-            listVM.posts.insert(hasNewValue, at: 0)
-            listVM.path.removeLast()
-        }
+//            listVM.posts.insert(hasNewValue, at: 0)
+//            listVM.path.removeLast()
+//        }
         .onChange(of: vm.errorMsg) { oldValue, newValue in
-            listVM.errorMsg = newValue
+//            listVM.errorMsg = newValue
         }
         
         
     }
 }
 
-#Preview {
-    CreateView(vm: CreateVM(createPostService: CreatePostServiceImpl(repository: PostRepositoryImpl())))
-}
+//#Preview {
+//    CreateView(vm: CreateVM(createPostService: CreatePostServiceImpl(repository: PostRepositoryImpl())))
+//}

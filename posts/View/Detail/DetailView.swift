@@ -9,65 +9,79 @@ import SwiftUI
 
 struct DetailView: View {
     
-    @EnvironmentObject private var listVM: ListVM
-    @ObservedObject private var vm: DetailVM
+    @Environment(ListVM.self) var listVM
+    @Environment(\.dismiss) var dismiss
+    
+    @State private var vm: DetailVM
     
     init(vm: DetailVM) {
-        _vm = ObservedObject(wrappedValue: vm)
-        
-        print("DetailView init")
+        print("DetailView \(vm.postId) init")
+        self.vm = vm
     }
     
     var body: some View {
         
-        ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 16) {
-                
-                ImageView(postId: vm.post.id)
-                
-                // Post
-                VStack(alignment: .leading, spacing: 8) {
-                    CustomTextView(title: "id", text: vm.post.id.description)
-                    CustomTextView(title: "title", text: vm.post.title)
-                    CustomTextView(title: "body", text: vm.post.body)
-                    CustomTextView(title: "userId", text: vm.post.userId.description)
-                }
-                
-                if !vm.comments.isEmpty {
-                    Divider()
-                        .frame(height: 2)
-                        .background(Color.gray)
-                        .overlay {
-                            Text("Comments")
-                                .font(.system(size: TEXT_FONT_SIZE, weight: .bold))
-                                .padding(.horizontal, 4)
-                                .background(.white)
-                        }
-                }
-                    
-                // Comments
-                VStack(alignment: .leading, spacing: 16) {
-                    ForEach(Array(vm.comments.enumerated()), id: \.element.id) { index, comment in
-                        CommentView(comment: comment)
-                        if index != 2 { Divider() }
+        print("DetailView \(vm.postId) render")
+        
+        return List {
+            if let hasPost = vm.post {
+                Section(header:
+                            Text("Post")
+                                .font(.headline)
+                                .padding(.bottom, 4)
+                ) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        CustomTextView(title: "id", text: "\(hasPost.id)")
+                        CustomTextView(title: "title", text: "\(hasPost.title)")
+                        CustomTextView(title: "body", text: "\(hasPost.body)")
+                        CustomTextView(title: "userId", text: "\(hasPost.userId)")
                     }
                 }
                 
+                if !vm.comments.isEmpty {
+                    Section(header:
+                                HStack {
+                                        Text("Comments")
+                                            .font(.headline)
+                        
+                                        Spacer()
+                                        
+                                        if vm.totalComments.count > 3 {
+                                            Button {
+                                                vm.didTapCommentsMoreBtn()
+                                            } label: {
+                                                Image(systemName: "chevron.\(vm.comments.count == 3 ? "down" : "up")")
+                                                    .foregroundColor(.blue)
+                                            }
+                                        }
+                                }
+                                .padding(.bottom, 4)
+                    ) {
+                        ForEach(vm.comments, id: \.id) { comment in
+                            CommentView(comment: comment)
+                        }
+                    }
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .applyPadding()
         }
-        
+        .task {
+            await vm.fetchPostDetail()
+        }
         .onAppear {
-            vm.loadComments()
-            print("DetailView Appeared")
+            print("DetailView \(vm.postId) Appeared")
         }
         .onDisappear {
-            listVM.detailVM = nil
-            print("DetailView Disappeared")
+            print("DetailView \(vm.postId) Disappeared")
         }
-        .onChange(of: vm.errorMsg) { oldValue, newValue in
+        .onChange(of: vm.isLoading) { _, newValue in
+            listVM.isLoading = newValue
+        }
+        .onChange(of: vm.errorMsg) { _, newValue in
             listVM.errorMsg = newValue
+        }
+        .onChange(of: listVM.errorMsg) { oldValue, newValue in
+            guard oldValue != nil, newValue == nil else { return }
+            dismiss()
         }
         
         
@@ -75,5 +89,6 @@ struct DetailView: View {
 }
 
 #Preview {
-    DetailView(vm: DetailVM(getFirstThreeCommentsService: GetFirstThreeCommentsServiceImpl(repository: PostRepositoryImpl()), post: Post(id: 1, title: "test", body: "test", userId: 1)))
+    DetailView(vm: DetailVM(postId: 1, getPostDetailService: GetPostDetailService(repository: DefaultPostRepository())))
+        .environment(ListVM(getPostsService: GetPostsService(repository: DefaultPostRepository())))
 }

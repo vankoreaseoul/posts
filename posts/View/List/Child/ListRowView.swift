@@ -12,21 +12,23 @@ struct ListRowView: View {
     let post: Post
     
     init(post: Post) {
-        self.post = post
-        
         print("ListRowView \(post.id) init")
+        self.post = post
     }
     
     var body: some View {
+        print("ListRowView \(post.id) rendering")
         
-        VStack(alignment: .leading, spacing: 4) {
-            CustomTextView(title: "id", text: post.id.description)
+        return VStack(alignment: .leading, spacing: 8) {
+            CustomTextView(title: "id", text: "\(post.id)")
             CustomTextView(title: "title", text: post.title)
-            CustomTextView(title: "userId", text: post.userId.description)
+            CustomTextView(title: "userId", text: "\(post.userId)")
         }
-        
         .onAppear {
             print("ListRowView \(post.id) Appeared")
+        }
+        .onDisappear {
+            print("ListRowView \(post.id) Disappeared")
         }
         
         

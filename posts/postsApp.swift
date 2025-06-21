@@ -10,12 +10,10 @@ import SwiftUI
 @main
 struct postsApp: App {
     
-    private let listVM = ListVM(getPostsService: GetPostsServiceImpl(repository: DIContainer.shared.getPostRepository()))
-    
     var body: some Scene {
         WindowGroup {
-            ListView(vm: listVM)
+            ListView()
         }
+        
     }
-    
 }

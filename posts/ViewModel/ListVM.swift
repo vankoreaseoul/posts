@@ -6,88 +6,67 @@
 //
 
 import Foundation
-import Combine
-import Moya
 
-enum ViewType {
-    case DETAIL, CREATE
-}
-
-class ListVM: ObservableObject {
+@Observable
+final class ListVM {
     
-    @Published var path: [ViewType] = []
-    @Published var posts: [Post] = []
-    @Published var errorMsg: String?
-    
-    private var selectedPost: Post?
-    var detailVM: DetailVM?
-    
-    var createVM: CreateVM?
+    var posts: [Post] = []
+    var isLoading: Bool = false
+    var errorMsg: String?
     
     private let getPostsService: GetPostsService
-    private var cancellables = Set<AnyCancellable>()
     
     init(getPostsService: GetPostsService) {
-        self.getPostsService = getPostsService
         print("ListVM init")
+        self.getPostsService = getPostsService
     }
     
     deinit {
         print("ListVM deinit")
     }
     
-    func loadPosts() {
-        errorMsg = ""
+    func fetchPosts() async {
+        print("fetchPosts call...")
         
-        getPostsService.execute()
-            .sink { [weak self] completion in
-                switch completion {
-                case .finished:
-                    break
-                case .failure(let error):
-                    self?.errorMsg = error.getMsg()
-                    break
-                }
-            } receiveValue: { [weak self] posts in
-                let postList = posts.sorted { $0.id > $1.id }
-                self?.posts = postList
-                self?.errorMsg = nil
+        isLoading = true
+        
+        do {
+            let fetchedPosts = try await getPostsService.execute()
+            
+            await MainActor.run {
+                posts = fetchedPosts
+                isLoading = false
             }
-            .store(in: &cancellables)
-    }
-    
-    func didTapPostRow(post: Post) {
-        selectedPost = post
-        path.append(.DETAIL)
-    }
-    
-    func getDetailVM() -> DetailVM {
-        let post: Post = selectedPost ?? Post(id: 0, title: "", body: "", userId: 0)
-        
-        if let hasDetailVM = detailVM, hasDetailVM.post == post {
-            return hasDetailVM
             
-        } else {
-            let detailVM = DetailVM(getFirstThreeCommentsService: GetFirstThreeCommentsServiceImpl(repository: DIContainer.shared.getPostRepository()), post: post)
-            self.detailVM = detailVM
-            return detailVM
+        } catch {
+            // TODO: error메시지 변환...
+            await MainActor.run {
+                errorMsg = error.localizedDescription
+                isLoading = false
+            }
+            
         }
     }
     
-    func didTapCreateBtn() {
-        path.append(.CREATE)
-    }
+    func didTapAlertOkBtn() { errorMsg = nil }
     
-    func getCreateVM() -> CreateVM {
-        if let hasCreateVM = createVM {
-            return hasCreateVM
-            
-        } else {
-            let createVM = CreateVM(createPostService: CreatePostServiceImpl(repository: DIContainer.shared.getPostRepository()))
-            self.createVM = createVM
-            return createVM
-        }
-    }
+    
+    
+     
+//    func didTapCreateBtn() {
+//        path.append(.CREATE)
+//    }
+//    
+//    func getCreateVM() -> CreateVM {
+//        if let hasCreateVM = createVM {
+//            return hasCreateVM
+//            
+//        } else {
+//            let createVM = CreateVM(createPostService: CreatePostServiceImpl(repository: DIContainer.shared.getPostRepository()))
+//            self.createVM = createVM
+//            return createVM
+//        }
+//    }
     
     
 }

@@ -19,15 +19,19 @@ struct CommentView: View {
     
     var body: some View {
         
-        VStack(alignment: .leading, spacing: 8) {
-            CustomTextView(title: "id", text: comment.id.description)
+        print("CommentView \(comment.id) render")
+        
+        return VStack(alignment: .leading, spacing: 16) {
+            CustomTextView(title: "id", text: "\(comment.id)")
             CustomTextView(title: "name", text: comment.name)
             CustomTextView(title: "email", text: comment.email)
             CustomTextView(title: "body", text: comment.body)
         }
-        
         .onAppear {
             print("CommentView \(comment.id) Appeared")
+        }
+        .onDisappear {
+            print("CommentView \(comment.id) Disappeared")
         }
         
         

@@ -9,13 +9,18 @@ import SwiftUI
 
 struct AlertView: View {
     
-    @Binding var msg: String?
-    @State private var errorMsg: String = ""
+    @Binding private var msg: String?
+    @State private var errorMsg: String
     
     init(msg: Binding<String?>) {
-        self._msg = msg
-        _errorMsg = State(initialValue: msg.wrappedValue ?? "")
+        _msg = msg
+        errorMsg = msg.wrappedValue ?? ""
     }
+    
+//    init(msg: String?) {
+//        _msg = msg
+//        errorMsg = msg.wrappedValue ?? ""
+//    }
     
     private func didTapOkBtn() { msg = nil }
     
