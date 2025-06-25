@@ -33,6 +33,12 @@ struct SpinnerView: View {
                         .foregroundStyle(.white)
                 }
             }
+            .onAppear {
+                print("SpinnerView Appeared")
+            }
+            .onDisappear {
+                print("SpinnerView Disappeared")
+            }
         
         
     }

@@ -6,46 +6,71 @@
 //
 
 import Foundation
-import Combine
+import UIKit
 
-class CreateVM: ObservableObject {
+enum CreatePostState: Equatable {
     
-    @Published var title: String = ""
-    @Published var body: String = ""
-    @Published var newPost: Post?
-    @Published var errorMsg: String?
+    static func == (lhs: CreatePostState, rhs: CreatePostState) -> Bool {
+        if case .FAILURE = lhs, case .FAILURE = rhs {
+            return true
+        } else if case .SUCCESS = lhs, case .SUCCESS = rhs {
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    case SUCCESS(msg: String)
+    case FAILURE(msg: String)
+}
+
+@MainActor
+@Observable
+final class CreateVM {
+    
+    var title: String = ""
+    var body: String = ""
+    
+    var newPost: Post?
+    var isLoading: Bool = false
+    var createState: CreatePostState?
     
     private let createPostService: CreatePostService
-    private var cancellables = Set<AnyCancellable>()
     
     init(createPostService: CreatePostService) {
-        self.createPostService = createPostService
-        
         print("CreateVM init")
+        self.createPostService = createPostService
     }
     
     deinit {
         print("CreateVM deinit")
     }
     
-    func didTapPostBtn() {
-        errorMsg = ""
-        
-        let post = Post(id: 0, title: title, body: body, userId: 1)
-        
-        createPostService.execute(post: post)
-            .sink { [weak self] completion in
-                switch completion {
-                case .finished:
-                    break
-                case .failure(let error):
-                    self?.errorMsg = error.getMsg()
-                    break
-                }
-            } receiveValue: { [weak self] post in
-                self?.newPost = post
-                self?.errorMsg = nil
-            }
-            .store(in: &cancellables)
+    func didTapBackground() {
+        UIApplication.shared.hideKeyboard()
     }
+    
+    func didTapPostBtn() {
+        // Suppose a user logs in and his/her id is 1
+        newPost = Post(id: 0, title: title, body: body, userId: 1)
+    }
+    
+    func saveNewPost() async {
+        print("saveNewPost call")
+        
+        guard let hasPost = newPost, hasPost.id == .zero else { return }
+        
+        print("saveNewPost proceed")
+        
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            newPost = try await createPostService.execute(post: hasPost)
+            createState = .SUCCESS(msg: "Successfully created a post!")
+        } catch {
+            createState = .FAILURE(msg: error.localizedDescription)
+        }
+    }
+    
 }

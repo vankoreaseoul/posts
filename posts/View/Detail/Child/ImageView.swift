@@ -9,47 +9,51 @@ import SwiftUI
 
 struct ImageView: View {
     
-    @StateObject var vm = ImageVM(getImageService: GetImageServiceImpl(repository: DIContainer.shared.getImageRepository()))
-    let postId: Int
+    @Binding var imageState: ImageState
+    @State private var id: Int = 0
     
-    init(postId: Int) {
-        self.postId = postId
-        
+    init(imageState: Binding<ImageState>) {
         print("ImageView init")
+        _imageState = imageState
     }
     
     var body: some View {
         
-        Rectangle()
-            .fill(.black.opacity(0.2))
-            .frame(width: 200, height: 300)
-            .overlay {
-                if let hasErrorMsg = vm.errorMsg {
-                    if hasErrorMsg.isEmpty {
-                        SpinnerView()
-                        
-                    } else {
-                        Text(hasErrorMsg)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
-                    }
-                    
-                } else {
-                    if let hasImage = vm.image {
-                        Image(uiImage: hasImage)
-                    }
-                }
-            }
+        print("ImageView render")
         
-            .onAppear {
-                vm.fetchImage(postId: postId)
+        return ZStack {
+            Rectangle()
+                .fill(imageState.isFailure ? .black : .white)
+            
+            switch imageState {
+            case .SUCCESS(let image):
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
                 
-                print("ImageView Appeard")
+            case .FAILURE(let msg):
+                Text(msg)
+                    .font(.system(size: TITLE_FONT_SIZE, weight: .bold))
+                    .foregroundStyle(.white)
+                
+            case .LOADING:
+                SpinnerView()
+                    .id(id)
             }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .onAppear {
+            print("ImageView Appeard")
+            if case .LOADING = imageState { id += 1 }
+        }
+        .onDisappear {
+            print("ImageView Disappeard")
+        }
+        
         
     }
 }
 
 #Preview {
-    ImageView(postId: 1)
+    ImageView(imageState: .constant(.LOADING))
 }

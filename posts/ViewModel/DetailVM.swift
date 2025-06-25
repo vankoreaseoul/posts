@@ -6,7 +6,22 @@
 //
 
 import Foundation
+import UIKit
 
+enum ImageState {
+    case SUCCESS(image: UIImage)
+    case FAILURE(msg: String)
+    case LOADING
+}
+
+extension ImageState {
+    var isFailure: Bool {
+        guard case .FAILURE = self else { return false }
+        return true
+    }
+}
+
+@MainActor
 @Observable
 final class DetailVM {
     
@@ -17,7 +32,10 @@ final class DetailVM {
     var errorMsg: String?
     var comments: [Comment] = []
     var totalComments: [Comment] = []
-
+    
+    var imageState: ImageState = .LOADING
+    var imageWidth: Int = .zero
+    
     private let getPostDetailService: GetPostDetailService
 
     init(postId: Int, getPostDetailService: GetPostDetailService) {
@@ -34,24 +52,40 @@ final class DetailVM {
         print("fetchPost call")
         
         isLoading = true
+        defer { isLoading = false }
         
         do {
-            // TODO: 순차 진행 -> 병렬 X
-            let fetchedPost = try await getPostDetailService.getPost(id: postId)
-            let fetchedComments = try await getPostDetailService.getComments(postId: postId)
+            // 병렬처리
+            async let fetchedPost = getPostDetailService.getPost(id: postId)
+            async let fetchedComments = getPostDetailService.getComments(postId: postId)
             
-            await MainActor.run {
-                post = fetchedPost
-                totalComments = fetchedComments
+            // 포스트에서만 에러 처리
+            post = try await fetchedPost
+            
+            // 댓글 에러는 무시 -> 댓글을 못 읽어도 포스트는 보이게 한다.
+            if let hasComments = try? await fetchedComments {
+                totalComments = hasComments
                 comments = Array(totalComments.prefix(3))
-                isLoading = false
             }
             
         } catch {
-            await MainActor.run {
-                errorMsg = error.localizedDescription
-                isLoading = false
-            }
+            errorMsg = error.localizedDescription
+        }
+    }
+    
+    func fetchImage() async {
+        print("fetchImage call...")
+        
+        guard imageWidth > 0 else { return }
+        
+        print("imageWidth = \(imageWidth)")
+        
+        do {
+            let fetchedImage = try await getPostDetailService.getImage(url: URL(string: "\(IMAGE_URL)/\(postId)/\(imageWidth)")!)
+            imageState = .SUCCESS(image: fetchedImage)
+            
+        } catch {
+            imageState = .FAILURE(msg: error.localizedDescription)
         }
     }
     

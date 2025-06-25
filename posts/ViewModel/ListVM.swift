@@ -7,8 +7,11 @@
 
 import Foundation
 
+@MainActor
 @Observable
 final class ListVM {
+    
+    var navigationPath: [Int] = []
     
     var posts: [Post] = []
     var isLoading: Bool = false
@@ -29,44 +32,19 @@ final class ListVM {
         print("fetchPosts call...")
         
         isLoading = true
+        defer { isLoading = false }
         
         do {
-            let fetchedPosts = try await getPostsService.execute()
-            
-            await MainActor.run {
-                posts = fetchedPosts
-                isLoading = false
-            }
-            
+            posts = try await getPostsService.execute().reversed()
+                    
         } catch {
-            // TODO: error메시지 변환...
-            await MainActor.run {
-                errorMsg = error.localizedDescription
-                isLoading = false
-            }
-            
+            errorMsg = error.localizedDescription
         }
     }
     
     func didTapAlertOkBtn() { errorMsg = nil }
     
-    
-    
-     
-//    func didTapCreateBtn() {
-//        path.append(.CREATE)
-//    }
-//    
-//    func getCreateVM() -> CreateVM {
-//        if let hasCreateVM = createVM {
-//            return hasCreateVM
-//            
-//        } else {
-//            let createVM = CreateVM(createPostService: CreatePostServiceImpl(repository: DIContainer.shared.getPostRepository()))
-//            self.createVM = createVM
-//            return createVM
-//        }
-//    }
+    func didTapCreateBtn() { navigationPath.append(0) }
     
     
 }

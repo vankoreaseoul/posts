@@ -9,79 +9,104 @@ import SwiftUI
 
 struct CreateView: View {
     
-//    @EnvironmentObject private var listVM: ListVM
-    @ObservedObject private var vm: CreateVM
+    @Environment(ListVM.self) var listVM
+    @Environment(\.dismiss) var dismiss
+    
+    @State private var vm: CreateVM
     
     init(vm: CreateVM) {
-        _vm = ObservedObject(wrappedValue: vm)
-        
         print("CreateView init")
+        _vm = State(wrappedValue: vm)
     }
     
     var body: some View {
         
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Title")
-                .font(.system(size: TITLE_FONT_SIZE, weight: .bold))
-            
-            TextField("Enter title", text: $vm.title)
-                .textFieldStyle(.roundedBorder)
-            
-            Text("Body")
-                .font(.system(size: TITLE_FONT_SIZE, weight: .bold))
-            
-            TextEditor(text: $vm.body)
-                .padding(.horizontal, 4)
-                .frame(height: 200)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.gray.opacity(0.2))
-                        .overlay(alignment: .topLeading) {
-                            if vm.body.isEmpty {
-                                Text("Enter body")
-                                    .font(.system(size: 17))
-                                    .foregroundStyle(.tertiary)
-                                    .padding([.leading, .top], 8)
-                            }
+        print("CreateView render")
+        
+        return ScrollView {
+            VStack(spacing: 32) {
+                
+                // Title
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Title")
+                        .font(.system(size: TITLE_FONT_SIZE, weight: .bold))
+                    
+                    TextField("Enter title", text: $vm.title)
+                        .textFieldStyle(.roundedBorder)
+                }
+                
+                // Body
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Body")
+                        .font(.system(size: TITLE_FONT_SIZE, weight: .bold))
+                    
+                    TextEditor(text: $vm.body)
+                        .padding(.horizontal, 4)
+                        .frame(maxWidth: .infinity)
+                        .aspectRatio(3/2, contentMode: .fit)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.2))
+                                .overlay(alignment: .topLeading) {
+                                    if vm.body.isEmpty {
+                                        Text("Enter body")
+                                            .font(.system(size: 17))
+                                            .foregroundStyle(.tertiary)
+                                            .padding([.leading, .top], 8)
+                                    }
+                                }
                         }
                 }
-            
-            Spacer()
-            
-            CustomButton(title: "Post", fontSize: 18, verticalPadding: 16, bgColor: vm.title.isEmpty || vm.body.isEmpty ? .gray : .blue, disabled: vm.title.isEmpty || vm.body.isEmpty) {
-                UIApplication.shared.hideKeyboard()
-                vm.didTapPostBtn()
+                
+                CustomButton(title: "Post", fontSize: 18, verticalPadding: 16, bgColor: vm.title.isEmpty || vm.body.isEmpty ? .gray : .blue, disabled: vm.title.isEmpty || vm.body.isEmpty) {
+                    UIApplication.shared.hideKeyboard()
+                    vm.didTapPostBtn()
+                }
             }
+            .padding(.horizontal, 16)
         }
-        .applyPadding()
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationTitle("Create")
         .contentShape(Rectangle())
         .onTapGesture {
-            UIApplication.shared.hideKeyboard()
+            vm.didTapBackground()
         }
-        
-        
+        .task(id: vm.newPost?.id) {
+            await vm.saveNewPost()
+        }
         .onAppear {
             print("CreateView Appeared")
         }
         .onDisappear {
             print("CreateView Disappeared")
-//            listVM.createVM = nil
         }
-//        .onChange(of: vm.newPost) { oldValue, newValue in
-//            guard oldValue == nil, let hasNewValue = newValue else { return }
+        .onChange(of: vm.isLoading) { _, newValue in
+            listVM.isLoading = newValue
+        }
+        .onChange(of: vm.createState) { _, newValue in
+            guard let hasValue = newValue else { return }
             
-//            listVM.posts.insert(hasNewValue, at: 0)
-//            listVM.path.removeLast()
-//        }
-        .onChange(of: vm.errorMsg) { oldValue, newValue in
-//            listVM.errorMsg = newValue
+            switch hasValue {
+            case .SUCCESS(let msg):
+                listVM.errorMsg = msg
+                if let newPost = vm.newPost { listVM.posts.insert(newPost, at: 0) }
+                
+            case .FAILURE(let msg):
+                listVM.errorMsg = msg
+            }
+        }
+        .onChange(of: listVM.errorMsg) { oldValue, newValue in
+            guard oldValue != nil, newValue == nil else { return }
+            dismiss()
         }
         
         
     }
 }
 
-//#Preview {
-//    CreateView(vm: CreateVM(createPostService: CreatePostServiceImpl(repository: PostRepositoryImpl())))
-//}
+#Preview {
+    NavigationStack {
+        CreateView(vm: CreateVM(createPostService: CreatePostService(repository: DefaultPostRepository())))
+            .environment(ListVM(getPostsService: GetPostsService(repository: DefaultPostRepository())))
+    }
+}

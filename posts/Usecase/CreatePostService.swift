@@ -5,18 +5,11 @@
 //  Created by Heawon Seo on 5/31/25.
 //
 
-import Foundation
-import Combine
-
-protocol CreatePostService {
-    func execute(post: Post) -> AnyPublisher<Post, Error>
-}
-
-class CreatePostServiceImpl: CreatePostService {
+final class CreatePostService {
     
     private let repository: PostRepository
     
     init(repository: PostRepository) { self.repository = repository }
     
-    func execute(post: Post) -> AnyPublisher<Post, Error> { return repository.createPost(post: post) }
+    func execute(post: Post) async throws -> Post { return try await repository.createPost(post: post) }
 }

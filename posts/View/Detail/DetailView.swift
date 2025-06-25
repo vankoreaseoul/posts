@@ -16,7 +16,7 @@ struct DetailView: View {
     
     init(vm: DetailVM) {
         print("DetailView \(vm.postId) init")
-        self.vm = vm
+        _vm = State(wrappedValue: vm)
     }
     
     var body: some View {
@@ -25,6 +25,20 @@ struct DetailView: View {
         
         return List {
             if let hasPost = vm.post {
+                Section(header:
+                            Text("Image")
+                                .font(.headline)
+                                .padding(.bottom, 4)
+                ) {
+                    ImageView(imageState: $vm.imageState)
+                        .frame(maxWidth: .infinity)
+                        .aspectRatio(1, contentMode: .fit)
+                        .onReadSize {
+                            let width = Int($0.width)
+                            if vm.imageWidth != width { vm.imageWidth = width }
+                        }
+                }
+                
                 Section(header:
                             Text("Post")
                                 .font(.headline)
@@ -64,8 +78,12 @@ struct DetailView: View {
                 }
             }
         }
+        .navigationTitle("Detail")
         .task {
             await vm.fetchPostDetail()
+        }
+        .task(id: vm.imageWidth) {
+            await vm.fetchImage()
         }
         .onAppear {
             print("DetailView \(vm.postId) Appeared")
@@ -89,6 +107,8 @@ struct DetailView: View {
 }
 
 #Preview {
-    DetailView(vm: DetailVM(postId: 1, getPostDetailService: GetPostDetailService(repository: DefaultPostRepository())))
-        .environment(ListVM(getPostsService: GetPostsService(repository: DefaultPostRepository())))
+    NavigationStack {
+        DetailView(vm: DetailVM(postId: 1, getPostDetailService: GetPostDetailService(postRepository: DefaultPostRepository(), imageRepository: DefaultImageRepository())))
+            .environment(ListVM(getPostsService: GetPostsService(repository: DefaultPostRepository())))
+    }
 }

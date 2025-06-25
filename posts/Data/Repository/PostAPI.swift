@@ -55,7 +55,6 @@ extension MoyaProvider {
         return try await withCheckedThrowingContinuation { continuation in
             self.request(target) {
                 let result = self.parsing(T.self, result: $0)
-//                continuation.resume(throwing: NetworkError.serverError(statusCode: 404))
                 switch result {
                 case .success(let entity):
                     continuation.resume(returning: entity)

@@ -8,14 +8,6 @@
 import Foundation
 import SwiftUI
 
-struct PaddingModifier: ViewModifier {
-    var padding: CGFloat = 16
-    
-    func body(content: Content) -> some View {
-        content.padding(padding)
-    }
-}
-
 struct CustomButton: View {
     let title: String
     var fontSize: CGFloat = TEXT_FONT_SIZE

@@ -25,10 +25,10 @@ struct postsTests {
     
     @Test
     func fetchPost() async throws {
-        let getPostDetailService = GetPostDetailService(repository: DefaultPostRepository())
+        let getPostDetailService = GetPostDetailService(postRepository: DefaultPostRepository(), imageRepository: DefaultImageRepository())
         
         do {
-            let post = try await getPostDetailService.execute(id: 1)
+            let post = try await getPostDetailService.getPost(id: 1)
             print("post = \(post)")
             
         } catch {

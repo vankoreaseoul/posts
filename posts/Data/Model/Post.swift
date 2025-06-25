@@ -7,19 +7,7 @@
 
 import Foundation
 
-struct Post: Codable, Identifiable, Equatable {
-    
-//    func hash(into hasher: inout Hasher) {
-//        hasher.combine(id)
-//        hasher.combine(title)
-//        hasher.combine(body)
-//        hasher.combine(userId)
-//    }
-//    
-//    static func == (lhs: Post, rhs: Post) -> Bool {
-//        return lhs.id == rhs.id && lhs.title == rhs.title && lhs.body == rhs.body && lhs.userId == rhs.userId
-//    }
-    
+struct Post: Codable, Identifiable {
     let id: Int
     let title: String
     let body: String
