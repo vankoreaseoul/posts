@@ -7,15 +7,22 @@
 
 import Foundation
 
+enum ViewPhase<T: Equatable>: Equatable {
+    case IDLE
+    case LOADING
+    case LOADED(T)
+    case FAILED(String)
+}
+
 @MainActor
 @Observable
 final class ListVM {
     
     var navigationPath: [Int] = []
+    var phase: ViewPhase<[Post]> = .IDLE
     
-    var posts: [Post] = []
-    var isLoading: Bool = false
-    var errorMsg: String?
+    var isSpinnerViewPresented: Bool = false
+    @ObservationIgnored var posts: [Post] = []
     
     private let getPostsService: GetPostsService
     
@@ -30,21 +37,19 @@ final class ListVM {
     
     func fetchPosts() async {
         print("fetchPosts call...")
-        
-        isLoading = true
-        defer { isLoading = false }
+
+        phase = .LOADING
         
         do {
-            posts = try await getPostsService.execute().reversed()
+            let posts = try await Array( getPostsService.execute().reversed() )
+            self.posts = posts
+            phase = .LOADED(posts)
                     
         } catch {
-            errorMsg = error.localizedDescription
+            phase = .FAILED(error.localizedDescription)
         }
     }
     
-    func didTapAlertOkBtn() { errorMsg = nil }
-    
     func didTapCreateBtn() { navigationPath.append(0) }
-    
     
 }

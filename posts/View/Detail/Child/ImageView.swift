@@ -9,42 +9,42 @@ import SwiftUI
 
 struct ImageView: View {
     
-    @Binding var imageState: ImageState
-    @State private var id: Int = 0
+    @Binding var phase: ViewPhase<UIImage>
     
-    init(imageState: Binding<ImageState>) {
+    init(phase: Binding<ViewPhase<UIImage>>) {
         print("ImageView init")
-        _imageState = imageState
+        _phase = phase
     }
     
     var body: some View {
         
         print("ImageView render")
         
-        return ZStack {
-            Rectangle()
-                .fill(imageState.isFailure ? .black : .white)
-            
-            switch imageState {
-            case .SUCCESS(let image):
+        return VStack(spacing: 0) {
+            switch phase {
+            case .IDLE, .LOADING:
+                Rectangle()
+                    .fill(.gray.opacity(0.3))
+                    .shimmer()
+                
+            case .LOADED(let image):
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
                 
-            case .FAILURE(let msg):
-                Text(msg)
-                    .font(.system(size: TITLE_FONT_SIZE, weight: .bold))
-                    .foregroundStyle(.white)
-                
-            case .LOADING:
-                SpinnerView()
-                    .id(id)
+            case .FAILED(let msg):
+                Rectangle()
+                    .fill(.black)
+                    .overlay {
+                        Text(msg)
+                            .font(.system(size: TITLE_FONT_SIZE, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .onAppear {
             print("ImageView Appeard")
-            if case .LOADING = imageState { id += 1 }
         }
         .onDisappear {
             print("ImageView Disappeard")
@@ -55,5 +55,5 @@ struct ImageView: View {
 }
 
 #Preview {
-    ImageView(imageState: .constant(.LOADING))
+    ImageView(phase: .constant(.FAILED("test")))
 }

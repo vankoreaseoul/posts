@@ -8,33 +8,21 @@
 import Foundation
 import UIKit
 
-enum ImageState {
-    case SUCCESS(image: UIImage)
-    case FAILURE(msg: String)
-    case LOADING
-}
-
-extension ImageState {
-    var isFailure: Bool {
-        guard case .FAILURE = self else { return false }
-        return true
-    }
-}
-
 @MainActor
 @Observable
 final class DetailVM {
     
-    let postId: Int
+    @ObservationIgnored let postId: Int
     
-    var post: Post?
-    var isLoading: Bool = false
-    var errorMsg: String?
+    var phase: ViewPhase<Post> = .IDLE
     var comments: [Comment] = []
     var totalComments: [Comment] = []
     
-    var imageState: ImageState = .LOADING
-    var imageWidth: Int = .zero
+    var imagePhase: ViewPhase<UIImage> = .IDLE
+    @ObservationIgnored var imageWidth: Int = .zero {
+        didSet { task = Task { await fetchImage() } }
+    }
+    @ObservationIgnored private var task: Task<Void, Never>?
     
     private let getPostDetailService: GetPostDetailService
 
@@ -46,13 +34,13 @@ final class DetailVM {
     
     deinit {
         print("DetailVM \(postId) deinit")
+        task?.cancel()
     }
     
     func fetchPostDetail() async {
         print("fetchPost call")
         
-        isLoading = true
-        defer { isLoading = false }
+        phase = .LOADING
         
         do {
             // 병렬처리
@@ -60,7 +48,7 @@ final class DetailVM {
             async let fetchedComments = getPostDetailService.getComments(postId: postId)
             
             // 포스트에서만 에러 처리
-            post = try await fetchedPost
+            let post = try await fetchedPost
             
             // 댓글 에러는 무시 -> 댓글을 못 읽어도 포스트는 보이게 한다.
             if let hasComments = try? await fetchedComments {
@@ -68,8 +56,10 @@ final class DetailVM {
                 comments = Array(totalComments.prefix(3))
             }
             
+            phase = .LOADED(post)
+            
         } catch {
-            errorMsg = error.localizedDescription
+            phase = .FAILED(error.localizedDescription)
         }
     }
     
@@ -82,10 +72,10 @@ final class DetailVM {
         
         do {
             let fetchedImage = try await getPostDetailService.getImage(url: URL(string: "\(IMAGE_URL)/\(postId)/\(imageWidth)")!)
-            imageState = .SUCCESS(image: fetchedImage)
+            imagePhase = .LOADED(fetchedImage)
             
         } catch {
-            imageState = .FAILURE(msg: error.localizedDescription)
+            imagePhase = .FAILED(error.localizedDescription)
         }
     }
     

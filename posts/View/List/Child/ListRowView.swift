@@ -17,7 +17,7 @@ struct ListRowView: View {
     }
     
     var body: some View {
-        print("ListRowView \(post.id) rendering")
+        print("ListRowView \(post.id) render")
         
         return VStack(alignment: .leading, spacing: 8) {
             CustomTextView(title: "id", text: "\(post.id)")

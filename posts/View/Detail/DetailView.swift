@@ -9,9 +9,6 @@ import SwiftUI
 
 struct DetailView: View {
     
-    @Environment(ListVM.self) var listVM
-    @Environment(\.dismiss) var dismiss
-    
     @State private var vm: DetailVM
     
     init(vm: DetailVM) {
@@ -23,43 +20,80 @@ struct DetailView: View {
         
         print("DetailView \(vm.postId) render")
         
-        return List {
-            if let hasPost = vm.post {
-                Section(header:
-                            Text("Image")
-                                .font(.headline)
-                                .padding(.bottom, 4)
-                ) {
-                    ImageView(imageState: $vm.imageState)
-                        .frame(maxWidth: .infinity)
-                        .aspectRatio(1, contentMode: .fit)
-                        .onReadSize {
-                            let width = Int($0.width)
-                            if vm.imageWidth != width { vm.imageWidth = width }
+        return VStack(spacing: 0) {
+            switch vm.phase {
+            case .IDLE, .LOADING:
+                List {
+                    Section(header:
+                                Text("Image")
+                                    .font(.headline)
+                                    .padding(.bottom, 4)
+                    ) {
+                        ImageView(phase: $vm.imagePhase)
+                            .aspectRatio(1, contentMode: .fit)
+                            .onReadSize {
+                                let width = Int($0.width)
+                                if vm.imageWidth != width { vm.imageWidth = width }
+                            }
+                    }
+                    
+                    Section(header:
+                                Text("Post")
+                                    .font(.headline)
+                                    .padding(.bottom, 4)
+                    ) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            ListRowLoadingView(count: 4, hasBtn: false)
                         }
-                }
-                
-                Section(header:
-                            Text("Post")
-                                .font(.headline)
-                                .padding(.bottom, 4)
-                ) {
-                    VStack(alignment: .leading, spacing: 16) {
-                        CustomTextView(title: "id", text: "\(hasPost.id)")
-                        CustomTextView(title: "title", text: "\(hasPost.title)")
-                        CustomTextView(title: "body", text: "\(hasPost.body)")
-                        CustomTextView(title: "userId", text: "\(hasPost.userId)")
+                    }
+                    
+                    Section(header:
+                                Text("Comments")
+                                    .font(.headline)
+                                    .padding(.bottom, 4)
+                    ) {
+                        ForEach(0..<5) { _ in
+                            ListRowLoadingView(count: 4, hasBtn: false)
+                        }
                     }
                 }
-                
-                if !vm.comments.isEmpty {
+            
+            case .LOADED(let post):
+                List {
                     Section(header:
-                                HStack {
+                                Text("Image")
+                                    .font(.headline)
+                                    .padding(.bottom, 4)
+                    ) {
+                        ImageView(phase: $vm.imagePhase)
+                            .aspectRatio(1, contentMode: .fit)
+                            .onReadSize {
+                                let width = Int($0.width)
+                                if vm.imageWidth != width { vm.imageWidth = width }
+                            }
+                    }
+                    
+                    Section(header:
+                                Text("Post")
+                                    .font(.headline)
+                                    .padding(.bottom, 4)
+                    ) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            CustomTextView(title: "id", text: "\(post.id)")
+                            CustomTextView(title: "title", text: "\(post.title)")
+                            CustomTextView(title: "body", text: "\(post.body)")
+                            CustomTextView(title: "userId", text: "\(post.userId)")
+                        }
+                    }
+                    
+                    if !vm.comments.isEmpty {
+                        Section(header:
+                                    HStack {
                                         Text("Comments")
                                             .font(.headline)
-                        
+                            
                                         Spacer()
-                                        
+                            
                                         if vm.totalComments.count > 3 {
                                             Button {
                                                 vm.didTapCommentsMoreBtn()
@@ -68,38 +102,33 @@ struct DetailView: View {
                                                     .foregroundColor(.blue)
                                             }
                                         }
-                                }
-                                .padding(.bottom, 4)
-                    ) {
-                        ForEach(vm.comments, id: \.id) { comment in
-                            CommentView(comment: comment)
+                                    }
+                                    .padding(.bottom, 4)
+                        ) {
+                            ForEach(vm.comments, id: \.id) { comment in
+                                CommentView(comment: comment)
+                            }
                         }
                     }
+                    
                 }
+                
+            case .FAILED(let msg):
+                Text(msg)
+                    .font(.system(size: TITLE_FONT_SIZE))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 16)
             }
         }
         .navigationTitle("Detail")
         .task {
             await vm.fetchPostDetail()
         }
-        .task(id: vm.imageWidth) {
-            await vm.fetchImage()
-        }
         .onAppear {
             print("DetailView \(vm.postId) Appeared")
         }
         .onDisappear {
             print("DetailView \(vm.postId) Disappeared")
-        }
-        .onChange(of: vm.isLoading) { _, newValue in
-            listVM.isLoading = newValue
-        }
-        .onChange(of: vm.errorMsg) { _, newValue in
-            listVM.errorMsg = newValue
-        }
-        .onChange(of: listVM.errorMsg) { oldValue, newValue in
-            guard oldValue != nil, newValue == nil else { return }
-            dismiss()
         }
         
         
@@ -109,6 +138,5 @@ struct DetailView: View {
 #Preview {
     NavigationStack {
         DetailView(vm: DetailVM(postId: 1, getPostDetailService: GetPostDetailService(postRepository: DefaultPostRepository(), imageRepository: DefaultImageRepository())))
-            .environment(ListVM(getPostsService: GetPostsService(repository: DefaultPostRepository())))
     }
 }

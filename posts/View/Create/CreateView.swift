@@ -71,8 +71,10 @@ struct CreateView: View {
         .onTapGesture {
             vm.didTapBackground()
         }
-        .task(id: vm.newPost?.id) {
-            await vm.saveNewPost()
+        .alert("Notice", isPresented: .constant(!vm.alertMsg.isEmpty)) {
+            Button("OK") { vm.didTapAlertOkBtn() }
+        } message: {
+            Text(vm.alertMsg)
         }
         .onAppear {
             print("CreateView Appeared")
@@ -80,23 +82,29 @@ struct CreateView: View {
         .onDisappear {
             print("CreateView Disappeared")
         }
-        .onChange(of: vm.isLoading) { _, newValue in
-            listVM.isLoading = newValue
-        }
-        .onChange(of: vm.createState) { _, newValue in
-            guard let hasValue = newValue else { return }
-            
-            switch hasValue {
-            case .SUCCESS(let msg):
-                listVM.errorMsg = msg
-                if let newPost = vm.newPost { listVM.posts.insert(newPost, at: 0) }
+        .onChange(of: vm.phase) { _, newValue in
+            switch newValue {
+            case .IDLE:
+                break
                 
-            case .FAILURE(let msg):
-                listVM.errorMsg = msg
+            case .LOADING:
+                listVM.isSpinnerViewPresented = true
+                break
+                
+            case .LOADED(let post):
+                listVM.posts.insert(post, at: 0)
+                listVM.phase = .LOADED(listVM.posts)
+                
+                vm.alertMsg = "Successfully created a post!"
+                listVM.isSpinnerViewPresented = false
+                
+            case .FAILED(let msg):
+                vm.alertMsg = msg
+                listVM.isSpinnerViewPresented = false   
             }
         }
-        .onChange(of: listVM.errorMsg) { oldValue, newValue in
-            guard oldValue != nil, newValue == nil else { return }
+        .onChange(of: vm.alertMsg) { oldValue, newValue in
+            guard !oldValue.isEmpty, newValue.isEmpty else { return }
             dismiss()
         }
         

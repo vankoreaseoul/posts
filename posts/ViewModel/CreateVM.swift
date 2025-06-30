@@ -8,22 +8,6 @@
 import Foundation
 import UIKit
 
-enum CreatePostState: Equatable {
-    
-    static func == (lhs: CreatePostState, rhs: CreatePostState) -> Bool {
-        if case .FAILURE = lhs, case .FAILURE = rhs {
-            return true
-        } else if case .SUCCESS = lhs, case .SUCCESS = rhs {
-            return true
-        } else {
-            return false
-        }
-    }
-    
-    case SUCCESS(msg: String)
-    case FAILURE(msg: String)
-}
-
 @MainActor
 @Observable
 final class CreateVM {
@@ -31,9 +15,10 @@ final class CreateVM {
     var title: String = ""
     var body: String = ""
     
-    var newPost: Post?
-    var isLoading: Bool = false
-    var createState: CreatePostState?
+    var phase: ViewPhase<Post> = .IDLE
+    var alertMsg: String = ""
+    
+    @ObservationIgnored private var task: Task<Void, Never>?
     
     private let createPostService: CreatePostService
     
@@ -44,6 +29,7 @@ final class CreateVM {
     
     deinit {
         print("CreateVM deinit")
+        task?.cancel()
     }
     
     func didTapBackground() {
@@ -51,26 +37,26 @@ final class CreateVM {
     }
     
     func didTapPostBtn() {
-        // Suppose a user logs in and his/her id is 1
-        newPost = Post(id: 0, title: title, body: body, userId: 1)
+        task = Task { await saveNewPost() }
     }
     
     func saveNewPost() async {
         print("saveNewPost call")
         
-        guard let hasPost = newPost, hasPost.id == .zero else { return }
+        phase = .LOADING
         
-        print("saveNewPost proceed")
-        
-        isLoading = true
-        defer { isLoading = false }
+        // Suppose a user logs in and his/her id is 1
+        let post = Post(id: 0, title: title, body: body, userId: 1)
 
         do {
-            newPost = try await createPostService.execute(post: hasPost)
-            createState = .SUCCESS(msg: "Successfully created a post!")
+            let newPost = try await createPostService.execute(post: post)
+            phase = .LOADED(newPost)
+
         } catch {
-            createState = .FAILURE(msg: error.localizedDescription)
+            phase = .FAILED(error.localizedDescription)
         }
     }
+    
+    func didTapAlertOkBtn() { alertMsg = "" }
     
 }
