@@ -8,7 +8,6 @@
 import Foundation
 import UIKit
 
-@MainActor
 @Observable
 final class DetailVM {
     
@@ -17,14 +16,20 @@ final class DetailVM {
     var phase: ViewPhase<Post> = .IDLE
     var comments: [Comment] = []
     var totalComments: [Comment] = []
-    
     var imagePhase: ViewPhase<UIImage> = .IDLE
-    @ObservationIgnored var imageWidth: Int = .zero {
-        didSet { task = Task { await fetchImage() } }
-    }
-    @ObservationIgnored private var task: Task<Void, Never>?
     
-    private let getPostDetailService: GetPostDetailService
+    @ObservationIgnored var imageWidth: Int = .zero {
+        didSet {
+            fetchImageTask?.cancel()
+            fetchImageTask = Task {
+                defer { fetchImageTask = nil }
+                await fetchImage()
+            }
+        }
+    }
+    @ObservationIgnored private var fetchImageTask: Task<Void, Never>?
+    
+    @ObservationIgnored private let getPostDetailService: GetPostDetailService
 
     init(postId: Int, getPostDetailService: GetPostDetailService) {
         print("DetailVM \(postId) init")
@@ -34,13 +39,13 @@ final class DetailVM {
     
     deinit {
         print("DetailVM \(postId) deinit")
-        task?.cancel()
+        fetchImageTask?.cancel()
     }
     
     func fetchPostDetail() async {
         print("fetchPost call")
         
-        phase = .LOADING
+        await MainActor.run { phase = .LOADING }
         
         do {
             // 병렬처리
@@ -52,33 +57,38 @@ final class DetailVM {
             
             // 댓글 에러는 무시 -> 댓글을 못 읽어도 포스트는 보이게 한다.
             if let hasComments = try? await fetchedComments {
-                totalComments = hasComments
-                comments = Array(totalComments.prefix(3))
+                await MainActor.run {
+                    totalComments = hasComments
+                    comments = Array(totalComments.prefix(3))
+                }
             }
             
-            phase = .LOADED(post)
+            await MainActor.run { phase = .LOADED(post) }
             
         } catch {
-            phase = .FAILED(error.localizedDescription)
+            await MainActor.run { phase = .FAILED(error.localizedDescription) }
         }
     }
     
-    func fetchImage() async {
+    private func fetchImage() async {
         print("fetchImage call...")
         
         guard imageWidth > 0 else { return }
         
         print("imageWidth = \(imageWidth)")
         
+        await MainActor.run { imagePhase = .LOADING }
+        
         do {
             let fetchedImage = try await getPostDetailService.getImage(url: URL(string: "\(IMAGE_URL)/\(postId)/\(imageWidth)")!)
-            imagePhase = .LOADED(fetchedImage)
+            await MainActor.run { imagePhase = .LOADED(fetchedImage) }
             
         } catch {
-            imagePhase = .FAILED(error.localizedDescription)
+            await MainActor.run { imagePhase = .FAILED(error.localizedDescription) }
         }
     }
     
+    @MainActor
     func didTapCommentsMoreBtn() {
         if comments.count == 3 {
             comments = totalComments

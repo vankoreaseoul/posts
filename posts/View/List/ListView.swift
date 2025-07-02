@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Swinject
 
 struct ListView: View {
         
@@ -20,66 +21,35 @@ struct ListView: View {
         
         print("ListView render")
         
-        return NavigationStack(path: $vm.navigationPath) {
-            VStack(spacing: 0) {
-                switch vm.phase {
-                case .IDLE, .LOADING:
-                    List { ForEach(0..<12) { _ in ListRowLoadingView(count: 3) } }
-                    
-                case .LOADED(let posts):
-                    if posts.isEmpty {
-                        VStack(spacing: 12) {
-                            Text("No posts")
-                                .font(.system(size: TITLE_FONT_SIZE))
-                            
-                            CustomButton(title: "Refresh") {}
-                                .refreshable { await vm.fetchPosts() }
-                        }
-                        .padding(.horizontal, 16)
-                        
-                    } else {
-                        List {
-                            ForEach(posts, id: \.id) { post in
-                                NavigationLink(value: post.id) { ListRowView(post: post) }
-                            }
-                        }
-                        .refreshable { await vm.fetchPosts() }
-                    }
-                    
-                case .FAILED(let msg):
-                    VStack(spacing: 12) {
-                        Text(msg)
-                            .font(.system(size: TITLE_FONT_SIZE))
-                            .multilineTextAlignment(.center)
-                          
-                        CustomButton(title: "Refresh") {}
-                            .refreshable { await vm.fetchPosts() }
-                    }
-                    .padding(.horizontal, 16)
-                }
-            }
-            .navigationTitle("Posts")
-            .toolbar {
-                ToolbarItem {
-                    CustomButton(title: "Create", horizontalPadding: 16) {
-                         vm.didTapCreateBtn()
-                    }
-                }
-            }
-            .navigationDestination(for: Post.ID.self) { id in
-                if id != .zero {
-                    DetailView(vm: DetailVM(postId: id, getPostDetailService: GetPostDetailService(postRepository: DefaultPostRepository(), imageRepository: DefaultImageRepository())))
+        return VStack(spacing: 0) {
+            switch vm.phase {
+            case .IDLE, .LOADING:
+                List { ForEach(0..<12) { _ in ListRowLoadingView(count: 3) } }
+                
+            case .LOADED(let posts):
+                if posts.isEmpty {
+                    NoticeView(text: "No posts", btnTitle: "Refresh", isBtnTapped: $vm.isRefreshBtnTapped)
                     
                 } else {
-                    CreateView(vm: CreateVM(createPostService: CreatePostService(repository: DefaultPostRepository())))
-                        .environment(vm)
+                    List(posts, id: \.id) { post in
+                        Button { vm.didTapListRow(postId: post.id) } label: { ListRowView(post: post) }.tint(.black)
+                    }
+                    .refreshable { await vm.fetchPosts() }
                 }
+                
+            case .FAILED(let msg):
+                NoticeView(text: msg, btnTitle: "Refresh", isBtnTapped: $vm.isRefreshBtnTapped)
+            }
+        }
+        .navigationTitle("Posts")
+        .toolbar {
+            ToolbarItem {
+                CustomButton(title: "Create", horizontalPadding: 16) { vm.didTapCreateBtn() }
             }
         }
         .padding(.bottom, 1)
-        .overlay { if vm.isSpinnerViewPresented { SpinnerView() } }
         .task {
-            await vm.fetchPosts()
+            if !vm.isPostsFetched { await vm.fetchPosts() }
         }
         .onAppear {
             print("ListView Appeared")
@@ -93,11 +63,5 @@ struct ListView: View {
 }
 
 #Preview {
-    ListView(vm:
-                ListVM(getPostsService:
-                        GetPostsService(repository:
-                                            DefaultPostRepository()
-                                       )
-                      )
-    )
+    ListView(vm: ListVM(getPostsService: GetPostsService(repository:DefaultPostRepository()), coordinator: DefaultCoordinator(injector: DefaultInjector(container: Container()), initialScene: .LIST)))
 }

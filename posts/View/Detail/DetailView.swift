@@ -24,11 +24,7 @@ struct DetailView: View {
             switch vm.phase {
             case .IDLE, .LOADING:
                 List {
-                    Section(header:
-                                Text("Image")
-                                    .font(.headline)
-                                    .padding(.bottom, 4)
-                    ) {
+                    CustomSectionView(header: "Image") {
                         ImageView(phase: $vm.imagePhase)
                             .aspectRatio(1, contentMode: .fit)
                             .onReadSize {
@@ -37,34 +33,18 @@ struct DetailView: View {
                             }
                     }
                     
-                    Section(header:
-                                Text("Post")
-                                    .font(.headline)
-                                    .padding(.bottom, 4)
-                    ) {
-                        VStack(alignment: .leading, spacing: 16) {
-                            ListRowLoadingView(count: 4, hasBtn: false)
-                        }
+                    CustomSectionView(header: "Post") {
+                        VStack(alignment: .leading, spacing: 16) { ListRowLoadingView(count: 4, hasBtn: false) }
                     }
                     
-                    Section(header:
-                                Text("Comments")
-                                    .font(.headline)
-                                    .padding(.bottom, 4)
-                    ) {
-                        ForEach(0..<5) { _ in
-                            ListRowLoadingView(count: 4, hasBtn: false)
-                        }
+                    CustomSectionView(header: "Comments") {
+                        ForEach(0..<5) { _ in ListRowLoadingView(count: 4, hasBtn: false) }
                     }
                 }
             
             case .LOADED(let post):
                 List {
-                    Section(header:
-                                Text("Image")
-                                    .font(.headline)
-                                    .padding(.bottom, 4)
-                    ) {
+                    CustomSectionView(header: "Image") {
                         ImageView(phase: $vm.imagePhase)
                             .aspectRatio(1, contentMode: .fit)
                             .onReadSize {
@@ -73,11 +53,7 @@ struct DetailView: View {
                             }
                     }
                     
-                    Section(header:
-                                Text("Post")
-                                    .font(.headline)
-                                    .padding(.bottom, 4)
-                    ) {
+                    CustomSectionView(header: "Post") {
                         VStack(alignment: .leading, spacing: 16) {
                             CustomTextView(title: "id", text: "\(post.id)")
                             CustomTextView(title: "title", text: "\(post.title)")
@@ -86,40 +62,18 @@ struct DetailView: View {
                         }
                     }
                     
-                    if !vm.comments.isEmpty {
-                        Section(header:
-                                    HStack {
-                                        Text("Comments")
-                                            .font(.headline)
-                            
-                                        Spacer()
-                            
-                                        if vm.totalComments.count > 3 {
-                                            Button {
-                                                vm.didTapCommentsMoreBtn()
-                                            } label: {
-                                                Image(systemName: "chevron.\(vm.comments.count == 3 ? "down" : "up")")
-                                                    .foregroundColor(.blue)
-                                            }
-                                        }
-                                    }
-                                    .padding(.bottom, 4)
-                        ) {
-                            ForEach(vm.comments, id: \.id) { comment in
-                                CommentView(comment: comment)
-                            }
-                        }
+                    CustomSectionView(header: "Comments", isBtnHidden: vm.totalComments.count > 3 ? false : true, isBtnDefault: vm.comments.count == 3 ? true : false, action: {
+                        vm.didTapCommentsMoreBtn()
+                    }) {
+                        ForEach(vm.comments, id: \.id) { comment in CommentView(comment: comment) }
                     }
-                    
                 }
                 
             case .FAILED(let msg):
-                Text(msg)
-                    .font(.system(size: TITLE_FONT_SIZE))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 16)
+                NoticeView(text: msg, isBtnHidden: true)
             }
         }
+        .padding(.bottom, 1)
         .navigationTitle("Detail")
         .task {
             await vm.fetchPostDetail()

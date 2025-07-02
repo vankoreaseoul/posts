@@ -19,10 +19,18 @@ struct ListRowView: View {
     var body: some View {
         print("ListRowView \(post.id) render")
         
-        return VStack(alignment: .leading, spacing: 8) {
-            CustomTextView(title: "id", text: "\(post.id)")
-            CustomTextView(title: "title", text: post.title)
-            CustomTextView(title: "userId", text: "\(post.userId)")
+        return HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
+                CustomTextView(title: "id", text: "\(post.id)")
+                CustomTextView(title: "title", text: post.title)
+                CustomTextView(title: "userId", text: "\(post.userId)")
+            }
+            
+            Spacer(minLength: 4)
+            
+            Image(systemName: "chevron.right")
+                .renderingMode(.template)
+                .tint(.blue)
         }
         .onAppear {
             print("ListRowView \(post.id) Appeared")

@@ -6,11 +6,9 @@
 //
 
 import SwiftUI
+import Swinject
 
 struct CreateView: View {
-    
-    @Environment(ListVM.self) var listVM
-    @Environment(\.dismiss) var dismiss
     
     @State private var vm: CreateVM
     
@@ -59,62 +57,28 @@ struct CreateView: View {
                 }
                 
                 CustomButton(title: "Post", fontSize: 18, verticalPadding: 16, bgColor: vm.title.isEmpty || vm.body.isEmpty ? .gray : .blue, disabled: vm.title.isEmpty || vm.body.isEmpty) {
-                    UIApplication.shared.hideKeyboard()
                     vm.didTapPostBtn()
                 }
             }
             .padding(.horizontal, 16)
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
+        .padding(.bottom, 1)
+//        .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationTitle("Create")
         .contentShape(Rectangle())
-        .onTapGesture {
-            vm.didTapBackground()
-        }
-        .alert("Notice", isPresented: .constant(!vm.alertMsg.isEmpty)) {
-            Button("OK") { vm.didTapAlertOkBtn() }
-        } message: {
-            Text(vm.alertMsg)
-        }
+        .onTapGesture { vm.didTapBackground() }
         .onAppear {
             print("CreateView Appeared")
         }
         .onDisappear {
             print("CreateView Disappeared")
         }
-        .onChange(of: vm.phase) { _, newValue in
-            switch newValue {
-            case .IDLE:
-                break
-                
-            case .LOADING:
-                listVM.isSpinnerViewPresented = true
-                break
-                
-            case .LOADED(let post):
-                listVM.posts.insert(post, at: 0)
-                listVM.phase = .LOADED(listVM.posts)
-                
-                vm.alertMsg = "Successfully created a post!"
-                listVM.isSpinnerViewPresented = false
-                
-            case .FAILED(let msg):
-                vm.alertMsg = msg
-                listVM.isSpinnerViewPresented = false   
-            }
-        }
-        .onChange(of: vm.alertMsg) { oldValue, newValue in
-            guard !oldValue.isEmpty, newValue.isEmpty else { return }
-            dismiss()
-        }
-        
         
     }
 }
 
 #Preview {
     NavigationStack {
-        CreateView(vm: CreateVM(createPostService: CreatePostService(repository: DefaultPostRepository())))
-            .environment(ListVM(getPostsService: GetPostsService(repository: DefaultPostRepository())))
+        CreateView(vm: CreateVM(createPostService: CreatePostService(repository: DefaultPostRepository()), coordinator: DefaultCoordinator(injector: DefaultInjector(container: Container()), initialScene: .LIST)))
     }
 }

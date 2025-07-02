@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DC05A6AF2E13B6AC000B3F20 /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = DC05A6AE2E13B6AC000B3F20 /* Swinject */; };
 		DC8988692DE74CB400B0A034 /* CombineMoya in Frameworks */ = {isa = PBXBuildFile; productRef = DC8988682DE74CB400B0A034 /* CombineMoya */; };
 		DC89886B2DE74CB400B0A034 /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = DC89886A2DE74CB400B0A034 /* Moya */; };
 		DC8988BB2DE9FF2C00B0A034 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = DC8988BA2DE9FF2C00B0A034 /* Kingfisher */; };
@@ -68,6 +69,7 @@
 				DC8988BB2DE9FF2C00B0A034 /* Kingfisher in Frameworks */,
 				DC89886B2DE74CB400B0A034 /* Moya in Frameworks */,
 				DC8988692DE74CB400B0A034 /* CombineMoya in Frameworks */,
+				DC05A6AF2E13B6AC000B3F20 /* Swinject in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -138,6 +140,7 @@
 				DC8988682DE74CB400B0A034 /* CombineMoya */,
 				DC89886A2DE74CB400B0A034 /* Moya */,
 				DC8988BA2DE9FF2C00B0A034 /* Kingfisher */,
+				DC05A6AE2E13B6AC000B3F20 /* Swinject */,
 			);
 			productName = posts;
 			productReference = DC8988592DE74ABD00B0A034 /* posts.app */;
@@ -174,6 +177,7 @@
 			packageReferences = (
 				DC8988672DE74CB400B0A034 /* XCRemoteSwiftPackageReference "Moya" */,
 				DC8988B92DE9FF2C00B0A034 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				DC05A6AD2E13B6AC000B3F20 /* XCRemoteSwiftPackageReference "Swinject" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DC89885A2DE74ABD00B0A034 /* Products */;
@@ -495,6 +499,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		DC05A6AD2E13B6AC000B3F20 /* XCRemoteSwiftPackageReference "Swinject" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Swinject/Swinject.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.9.1;
+			};
+		};
 		DC8988672DE74CB400B0A034 /* XCRemoteSwiftPackageReference "Moya" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Moya/Moya.git";
@@ -514,6 +526,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		DC05A6AE2E13B6AC000B3F20 /* Swinject */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DC05A6AD2E13B6AC000B3F20 /* XCRemoteSwiftPackageReference "Swinject" */;
+			productName = Swinject;
+		};
 		DC8988682DE74CB400B0A034 /* CombineMoya */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DC8988672DE74CB400B0A034 /* XCRemoteSwiftPackageReference "Moya" */;

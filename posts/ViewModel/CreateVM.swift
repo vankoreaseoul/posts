@@ -8,55 +8,52 @@
 import Foundation
 import UIKit
 
-@MainActor
 @Observable
 final class CreateVM {
     
     var title: String = ""
     var body: String = ""
+    @ObservationIgnored private var createPostTask: Task<Void, Never>?
     
-    var phase: ViewPhase<Post> = .IDLE
-    var alertMsg: String = ""
+    @ObservationIgnored private let createPostService: CreatePostService
+    @ObservationIgnored weak var coordinator: Navigator?
     
-    @ObservationIgnored private var task: Task<Void, Never>?
-    
-    private let createPostService: CreatePostService
-    
-    init(createPostService: CreatePostService) {
+    init(createPostService: CreatePostService, coordinator: Navigator) {
         print("CreateVM init")
         self.createPostService = createPostService
+        self.coordinator = coordinator
     }
     
     deinit {
         print("CreateVM deinit")
-        task?.cancel()
+        createPostTask?.cancel()
     }
     
-    func didTapBackground() {
-        UIApplication.shared.hideKeyboard()
-    }
+    @MainActor
+    func didTapBackground() { hideKeyboard() }
     
     func didTapPostBtn() {
-        task = Task { await saveNewPost() }
-    }
-    
-    func saveNewPost() async {
-        print("saveNewPost call")
+        hideKeyboard()
+        coordinator?.presentFullScreenCover(.LOADING)
         
-        phase = .LOADING
-        
-        // Suppose a user logs in and his/her id is 1
+        // Suppose: User(id: 1)
         let post = Post(id: 0, title: title, body: body, userId: 1)
-
-        do {
-            let newPost = try await createPostService.execute(post: post)
-            phase = .LOADED(newPost)
-
-        } catch {
-            phase = .FAILED(error.localizedDescription)
+        
+        createPostTask?.cancel()
+        createPostTask = Task {
+            defer {
+                coordinator?.dismissCover()
+                createPostTask = nil
+            }
+            
+            do {
+                let newPost = try await createPostService.execute(post: post)
+                await MainActor.run { coordinator?.presentAlert(.DONE(newPost)) }
+                
+            } catch {
+                await MainActor.run { coordinator?.presentAlert(.ERROR(error.localizedDescription)) }
+            }
         }
     }
-    
-    func didTapAlertOkBtn() { alertMsg = "" }
     
 }

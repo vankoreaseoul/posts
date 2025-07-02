@@ -33,6 +33,7 @@ struct SpinnerView: View {
                         .foregroundStyle(.white)
                 }
             }
+            .presentationBackground(.clear)
             .onAppear {
                 print("SpinnerView Appeared")
             }

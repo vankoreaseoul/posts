@@ -14,42 +14,59 @@ enum ViewPhase<T: Equatable>: Equatable {
     case FAILED(String)
 }
 
-@MainActor
 @Observable
 final class ListVM {
     
-    var navigationPath: [Int] = []
     var phase: ViewPhase<[Post]> = .IDLE
+    var isRefreshBtnTapped: Bool = false { didSet { didTapRefreshBtn() } }
     
-    var isSpinnerViewPresented: Bool = false
+    @ObservationIgnored var isPostsFetched: Bool = false
     @ObservationIgnored var posts: [Post] = []
+    @ObservationIgnored var refreshTask: Task<Void, Never>?
     
-    private let getPostsService: GetPostsService
+    @ObservationIgnored private let getPostsService: GetPostsService
+    @ObservationIgnored weak var coordinator: Navigator?
     
-    init(getPostsService: GetPostsService) {
+    init(getPostsService: GetPostsService, coordinator: Navigator) {
         print("ListVM init")
         self.getPostsService = getPostsService
+        self.coordinator = coordinator
     }
     
     deinit {
         print("ListVM deinit")
+        refreshTask?.cancel()
     }
     
     func fetchPosts() async {
         print("fetchPosts call...")
 
-        phase = .LOADING
+        await MainActor.run { phase = .LOADING }
+        defer { if !isPostsFetched { isPostsFetched.toggle() } }
         
         do {
-            let posts = try await Array( getPostsService.execute().reversed() )
-            self.posts = posts
-            phase = .LOADED(posts)
+            let fetchedPosts = try await Array( getPostsService.execute().reversed() )
+            posts = fetchedPosts
+            
+            await MainActor.run { phase = .LOADED(posts) }
                     
         } catch {
-            phase = .FAILED(error.localizedDescription)
+            await MainActor.run { phase = .FAILED(error.localizedDescription) }
         }
     }
     
-    func didTapCreateBtn() { navigationPath.append(0) }
+    @MainActor
+    func didTapCreateBtn() { coordinator?.push(.CREATE) }
+    
+    @MainActor
+    func didTapListRow(postId: Int) { coordinator?.push(.DETAIL(postId)) }
+    
+    private func didTapRefreshBtn() {
+        refreshTask?.cancel()
+        refreshTask = Task {
+            defer {  refreshTask = nil }
+            await fetchPosts()
+        }
+    }
     
 }
