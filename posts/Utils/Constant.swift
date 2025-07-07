@@ -14,3 +14,4 @@ let TEXT_FONT_SIZE: CGFloat = 14
 let TITLE_FONT_SIZE: CGFloat = 16
 
 func hideKeyboard() { UIApplication.shared.hideKeyboard() }
+func cancelIfNeeded() throws { try Task.checkCancellation() }

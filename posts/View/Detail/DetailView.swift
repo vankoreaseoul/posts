@@ -75,11 +75,9 @@ struct DetailView: View {
         }
         .padding(.bottom, 1)
         .navigationTitle("Detail")
-        .task {
-            await vm.fetchPostDetail()
-        }
         .onAppear {
             print("DetailView \(vm.postId) Appeared")
+            vm.fetchPostDetail()
         }
         .onDisappear {
             print("DetailView \(vm.postId) Disappeared")

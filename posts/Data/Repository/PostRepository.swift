@@ -9,20 +9,54 @@ import Foundation
 import Moya
 
 protocol PostRepository {
-    func fetchPosts() async throws -> [Post]
-    func fetchPost(id: Int) async throws -> Post
-    func fetchComments(postId: Int) async throws -> [Comment]
-    func createPost(post: Post) async throws -> Post
+    func fetchPosts(isCancellable: Bool) async throws -> [Post]
+    func fetchPost(id: Int, isCancellable: Bool) async throws -> Post
+    func fetchComments(postId: Int, isCancellable: Bool) async throws -> [Comment]
+    func createPost(post: Post, isCancellable: Bool) async throws -> Post
 }
 
 final class DefaultPostRepository: PostRepository {
-    private let provider = MoyaProvider<PostAPI>()
     
-    func fetchPosts() async throws -> [Post] { return try await provider.asyncRequest([Post].self, .getPosts) }
+    private let provider: MoyaProvider<PostAPI>
     
-    func fetchPost(id: Int) async throws -> Post { return try await provider.asyncRequest(Post.self, .getPost(id: id)) }
+    init() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 10
+        config.timeoutIntervalForResource = 10
+        let session = Session(configuration: config)
+        provider = MoyaProvider<PostAPI>(session: session)
+    }
     
-    func fetchComments(postId: Int) async throws -> [Comment] { return try await provider.asyncRequest([Comment].self, .getComments(postId: postId)) }
+    func fetchPosts(isCancellable: Bool = false) async throws -> [Post] {
+        if isCancellable {
+            return try await provider.asyncCancellableRequest([Post].self, .getPosts)
+        } else {
+            return try await provider.asyncRequest([Post].self, .getPosts)
+        }
+    }
     
-    func createPost(post: Post) async throws -> Post { return try await provider.asyncRequest(Post.self, .createPost(post: post)) }
+    func fetchPost(id: Int, isCancellable: Bool = false) async throws -> Post {
+        if isCancellable {
+            return try await provider.asyncCancellableRequest(Post.self, .getPost(id: id))
+        } else {
+            return try await provider.asyncRequest(Post.self, .getPost(id: id))
+        }
+    }
+    
+    func fetchComments(postId: Int, isCancellable: Bool = false) async throws -> [Comment] {
+        if isCancellable {
+            return try await provider.asyncCancellableRequest([Comment].self, .getComments(postId: postId))
+        } else {
+            return try await provider.asyncRequest([Comment].self, .getComments(postId: postId))
+        }
+    }
+    
+    func createPost(post: Post, isCancellable: Bool = false) async throws -> Post {
+        if isCancellable {
+            return try await provider.asyncCancellableRequest(Post.self, .createPost(post: post))
+        } else {
+            return try await provider.asyncRequest(Post.self, .createPost(post: post))
+        }
+    }
+    
 }

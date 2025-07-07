@@ -41,31 +41,29 @@ final class ListVM {
     func fetchPosts() async {
         print("fetchPosts call...")
 
-        await MainActor.run { phase = .LOADING }
-        defer { if !isPostsFetched { isPostsFetched.toggle() } }
+        phase = .LOADING
+        defer { if !isPostsFetched { isPostsFetched = true } }
         
         do {
             let fetchedPosts = try await Array( getPostsService.execute().reversed() )
             posts = fetchedPosts
             
-            await MainActor.run { phase = .LOADED(posts) }
+            phase = .LOADED(posts)
                     
         } catch {
-            await MainActor.run { phase = .FAILED(error.localizedDescription) }
+            phase = .FAILED(error.localizedDescription)
         }
     }
     
-    @MainActor
     func didTapCreateBtn() { coordinator?.push(.CREATE) }
     
-    @MainActor
     func didTapListRow(postId: Int) { coordinator?.push(.DETAIL(postId)) }
     
     private func didTapRefreshBtn() {
         refreshTask?.cancel()
-        refreshTask = Task {
-            defer {  refreshTask = nil }
-            await fetchPosts()
+        refreshTask = Task { [weak self] in
+            await self?.fetchPosts()
+            self?.refreshTask = nil
         }
     }
     

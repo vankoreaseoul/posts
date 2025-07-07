@@ -17,9 +17,9 @@ final class GetPostDetailService {
         self.imageRepository = imageRepository
     }
     
-    func getPost(id: Int) async throws -> Post { return try await postRepository.fetchPost(id: id) }
+    func getPost(id: Int, isCancellable: Bool = false) async throws -> Post { return try await postRepository.fetchPost(id: id, isCancellable: isCancellable) }
     
-    func getComments(postId: Int) async throws -> [Comment] { return try await postRepository.fetchComments(postId: postId) }
+    func getComments(postId: Int, isCancellable: Bool = false) async throws -> [Comment] { return try await postRepository.fetchComments(postId: postId, isCancellable: isCancellable) }
     
-    func getImage(url: URL) async throws -> UIImage { return try await imageRepository.fetchImage(url: url) }
+    func getImage(url: URL, isCancellable: Bool = false) async throws -> UIImage { return try await imageRepository.fetchImage(url: url, isCancellable: isCancellable) }
 }

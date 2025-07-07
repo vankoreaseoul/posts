@@ -11,5 +11,5 @@ final class GetPostsService {
     
     init(repository: PostRepository) { self.repository = repository }
     
-    func execute() async throws -> [Post] { return try await repository.fetchPosts() }
+    func execute(isCancellable: Bool = false) async throws -> [Post] { return try await repository.fetchPosts(isCancellable: isCancellable) }
 }

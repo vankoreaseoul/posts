@@ -48,9 +48,7 @@ struct ListView: View {
             }
         }
         .padding(.bottom, 1)
-        .task {
-            if !vm.isPostsFetched { await vm.fetchPosts() }
-        }
+        .task { if !vm.isPostsFetched { await vm.fetchPosts() } }
         .onAppear {
             print("ListView Appeared")
         }

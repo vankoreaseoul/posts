@@ -11,5 +11,5 @@ final class CreatePostService {
     
     init(repository: PostRepository) { self.repository = repository }
     
-    func execute(post: Post) async throws -> Post { return try await repository.createPost(post: post) }
+    func execute(post: Post, isCancellable: Bool = false) async throws -> Post { return try await repository.createPost(post: post, isCancellable: isCancellable) }
 }

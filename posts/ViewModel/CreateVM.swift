@@ -29,7 +29,6 @@ final class CreateVM {
         createPostTask?.cancel()
     }
     
-    @MainActor
     func didTapBackground() { hideKeyboard() }
     
     func didTapPostBtn() {
@@ -40,19 +39,18 @@ final class CreateVM {
         let post = Post(id: 0, title: title, body: body, userId: 1)
         
         createPostTask?.cancel()
-        createPostTask = Task {
-            defer {
-                coordinator?.dismissCover()
-                createPostTask = nil
-            }
-            
+        createPostTask = Task { [weak self, createPostService] in
             do {
+                // 풀커버이기 때문에, 중간에 뷰에서 이탈할 수 없음 -> task.cancel 고려 X
                 let newPost = try await createPostService.execute(post: post)
-                await MainActor.run { coordinator?.presentAlert(.DONE(newPost)) }
+                self?.coordinator?.presentAlert(.DONE(newPost))
                 
             } catch {
-                await MainActor.run { coordinator?.presentAlert(.ERROR(error.localizedDescription)) }
+                self?.coordinator?.presentAlert(.ERROR(error.localizedDescription))
             }
+            
+            self?.coordinator?.dismissCover()
+            self?.createPostTask = nil
         }
     }
     
