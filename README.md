@@ -66,3 +66,12 @@ posts
   ├── Info
   ├── LaunchScreen
   └── postsApp
+```
+
+## Features
+
+- **Skeleton Loading View** for smooth UX during data fetch
+- **Coordinator pattern** for managing navigation outside of views
+- **Swift Concurrency with cancelable `Task`**, using `task.cancel()` to avoid unwanted async work
+- **Modern State Management** using Swift 6's `@Observable` and `@State` macros to replace `@ObservedObject` / `@StateObject`
+
