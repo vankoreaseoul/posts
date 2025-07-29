@@ -20,6 +20,9 @@ It also uses [Picsum Photos](https://picsum.photos/) to load sample images in th
 ### Architecture
 ![MVVM-C](https://img.shields.io/badge/MVVM--C-blueviolet)
 
+## UI Overview
+![Simulator Screen Recording - iPhone 16 - 2025-07-29 at 13 42 48 (1)](https://github.com/user-attachments/assets/e6db48d0-fb36-41a1-9da6-640c9fbe701e)
+
 ## Architecture
 ```
 posts
