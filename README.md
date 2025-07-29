@@ -19,3 +19,50 @@ Posts is an iOS app that allows users to view and create posts using the [JSONPl
 ### Architecture
 ![MVVM-C](https://img.shields.io/badge/MVVM--C-blueviolet)
 
+## Architecture
+```
+posts
+  ├── Data
+  │     ├── Model
+  │     │     ├── Post
+  │     │     └── Comment
+  │     └── Repository
+  │           ├── PostAPI
+  |           ├── PostRepository
+  │           └── ImageRepository
+  ├── DI
+  │    ├── Assembly
+  │    └── Injector
+  ├── Usecase
+  │      ├── GetPostsService
+  │      ├── GetPostDetailService
+  │      └── CreatePostService
+  ├── Utils
+  │     ├── Constant
+  │     ├── Extension
+  │     └── ViewStyles
+  ├── View
+  │     ├── Common
+  │     │     ├── ListRowLoadingView
+  |     |     ├── NoticelView
+  │     │     └── SpinnerView
+  |     ├── Create
+  │     │     └── CreateView
+  │     ├── Detail
+  │     │     ├── Child
+  │     │     │    ├── CommentView
+  │     │     │    └── ImageView      
+  │     │     └── DetailView
+  │     └── List
+  │           ├── Child
+  │           |     └── ListRowView   
+  │           └── ListView
+  ├── ViewModel
+  │       ├── ListVM
+  │       ├── DetailVM
+  │       └── CreateVM
+  ├── Coordinator
+  ├── Error
+  ├── Info
+  ├── LaunchScreen
+  └── postsApp
