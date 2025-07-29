@@ -1,5 +1,6 @@
 # Posts
-Posts is an iOS app that allows users to view and create posts using the [JSONPlaceholder](https://jsonplaceholder.typicode.com/) public API.
+Posts is an iOS app that allows users to view and create posts using the [JSONPlaceholder](https://jsonplaceholder.typicode.com/) public API.<br>
+It also uses [Picsum Photos](https://picsum.photos/) to load sample images in the detail view.
 
 ## Development Info
 * Developer: Heawon Seo
